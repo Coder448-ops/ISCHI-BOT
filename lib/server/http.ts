@@ -1,4 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
+import { StorageError } from './db';
 import { ApiError } from './orders';
 
 export function assertSameOrigin(request: NextRequest, requireOrigin = false) {
@@ -17,6 +19,7 @@ export function assertSameOrigin(request: NextRequest, requireOrigin = false) {
     }
   }
 }
+
 export async function readJson(request: NextRequest) {
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json'))
     throw new ApiError(415, 'JSON formatida so‘rov yuboring.');
@@ -42,16 +45,37 @@ export async function readJson(request: NextRequest) {
     throw new ApiError(400, 'So‘rov ma’lumotlari noto‘g‘ri.');
   }
 }
+
 export function errorResponse(error: unknown) {
   if (error instanceof ApiError)
     return NextResponse.json(
       { error: error.message },
       { status: error.status, headers: { 'Cache-Control': 'no-store' } },
     );
+  if (error instanceof StorageError)
+    return NextResponse.json(
+      { error: error.message, code: error.code },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
+    );
+
+  const reference = randomUUID().slice(0, 8).toUpperCase();
+  const name = error instanceof Error ? error.name : typeof error;
+  const code =
+    error && typeof error === 'object' && 'code' in error
+      ? String((error as { code?: unknown }).code)
+      : undefined;
+  // Do not log request bodies, customer fields, SQL parameters, or environment values.
+  console.error(
+    `[ISCHI] request failed reference=${reference} name=${name}${code ? ` code=${code}` : ''}`,
+  );
   return NextResponse.json(
-    { error: 'Texnik xatolik yuz berdi. Birozdan so‘ng qayta urinib ko‘ring.' },
+    {
+      error: `Texnik xatolik yuz berdi. Birozdan so‘ng qayta urinib ko‘ring. Xato kodi: ${reference}`,
+      reference,
+    },
     { status: 500, headers: { 'Cache-Control': 'no-store' } },
   );
 }
+
 export const privateJson = (data: unknown, status = 200) =>
   NextResponse.json(data, { status, headers: { 'Cache-Control': 'private, no-store' } });

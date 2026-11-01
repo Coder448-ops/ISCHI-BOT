@@ -3,8 +3,10 @@ import { checkoutSchema } from '@/lib/validation';
 import { createOrder, ApiError } from '@/lib/server/orders';
 import { flushNotifications } from '@/lib/server/notifications';
 import { assertSameOrigin, errorResponse, privateJson, readJson } from '@/lib/server/http';
+
 export const runtime = 'nodejs';
 const limits = new Map<string, { count: number; until: number }>();
+
 export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
@@ -31,7 +33,7 @@ export async function POST(request: NextRequest) {
           : issue.message;
       return privateJson({ error, field: issue.path[0] }, 400);
     }
-    const result = createOrder(parsed.data);
+    const result = await createOrder(parsed.data);
     if (!result.reused) after(() => flushNotifications());
     return privateJson({ order: result.order }, result.reused ? 200 : 201);
   } catch (error) {

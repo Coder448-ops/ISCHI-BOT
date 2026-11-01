@@ -10,7 +10,9 @@ import {
 } from '@/lib/server/auth';
 import { assertSameOrigin, errorResponse, privateJson, readJson } from '@/lib/server/http';
 import { ApiError } from '@/lib/server/orders';
+
 export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request, true);
@@ -20,11 +22,11 @@ export async function POST(request: NextRequest) {
     if (!adminConfigured())
       throw new ApiError(
         503,
-        'Administrator kirishi hali sozlanmagan. Server sozlamalarini tekshiring.',
+        'Administrator kirishi hali sozlanmagan. ADMIN_PASSWORD kamida 12 belgidan iborat bo‘lsin.',
       );
     if (!verifyCredentials(parsed.data.username, parsed.data.password))
       throw new ApiError(401, 'Login yoki parol noto‘g‘ri.');
-    const session = createSession(parsed.data.username, isSecureRequest(request));
+    const session = await createSession(parsed.data.username, isSecureRequest(request));
     const response = privateJson({ ok: true });
     response.cookies.set(SESSION_COOKIE, session.token, session.options);
     return response;
