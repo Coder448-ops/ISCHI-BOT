@@ -1,14 +1,13 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { after, beforeEach, test } from 'node:test';
-import { dbGet, getClient } from '../lib/server/db';
+import { after, before, beforeEach, test } from 'node:test';
+import { dbGet, dbRun } from '../lib/server/db';
+import { setupTestDatabase } from './helpers/database';
 import { ApiError, changeOrderStatus, createOrder, listOrders } from '../lib/server/orders';
 import { checkoutSchema, validName, validPhone } from '../lib/validation';
 import { formatPhone, money, normalizePhone } from '../lib/format';
 import { orderMessage } from '../lib/server/telegram';
 
-process.env.DATABASE_PATH = ':memory:';
-process.env.TURSO_DATABASE_URL = '';
 const input = () => ({
   customerName: 'Ali Valiyev',
   phone: '+998 90 123 45 67',
@@ -18,13 +17,19 @@ const input = () => ({
 const count = async (table: string) =>
   Number((await dbGet<{ n: number }>(`SELECT COUNT(*) AS n FROM ${table}`))?.n || 0);
 
-beforeEach(async () => {
-  const db = await getClient();
-  await db.executeMultiple(
-    'DELETE FROM notification_outbox; DELETE FROM order_items; DELETE FROM orders; DELETE FROM admin_sessions;',
-  );
+let cleanup: () => Promise<void>;
+before(async () => {
+  cleanup = await setupTestDatabase();
 });
-after(async () => (await getClient()).close());
+beforeEach(async () => {
+  await dbRun('DELETE FROM notification_outbox');
+  await dbRun('DELETE FROM order_items');
+  await dbRun('DELETE FROM orders');
+  await dbRun('DELETE FROM admin_sessions');
+});
+after(async () => {
+  await cleanup();
+});
 
 test('Uzbek names accept Latin, Cyrillic and apostrophes, reject incomplete or injected values', () => {
   for (const name of ['Ali Valiyev', 'G‘olibbek O‘tkirov', 'Али Валиев', 'Anna O’Connor-Smith'])

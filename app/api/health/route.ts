@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminConfigured } from '@/lib/server/auth';
-import { dbGet, isRemoteStorage, StorageError } from '@/lib/server/db';
+import { dbGet, StorageError } from '@/lib/server/db';
 import { telegramConfig } from '@/lib/server/telegram';
 
 export const runtime = 'nodejs';
@@ -12,7 +12,7 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: true,
-        storage: isRemoteStorage() ? 'turso' : 'local',
+        storage: 'postgresql',
         telegramConfigured: Boolean(telegramConfig()),
         adminConfigured: adminConfigured(),
       },

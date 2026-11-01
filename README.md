@@ -1,69 +1,85 @@
 # ISCHI — hisobsiz buyurtma tizimi
 
-O‘zbek tilidagi mobil moslashuvchan do‘kon, ikki maydonli mehmon checkouti, doimiy buyurtmalar bazasi, Telegram bildirishnomalari va alohida himoyalangan administrator paneli.
+O‘zbek tilidagi mobil moslashuvchan do‘kon, ikki maydonli mehmon checkouti, PostgreSQL buyurtmalar bazasi, Telegram bildirishnomalari va alohida himoyalangan administrator paneli.
 
 **Mijozlar uchun ro‘yxatdan o‘tish, kirish, parol, email yoki mijoz hisobi yo‘q.** `/admin/login` faqat administrator uchun.
 
-## Muhim: Vercel uchun ma’lumotlar bazasi
+## Muhim: Vercel uchun PostgreSQL
 
-Vercel serverless funksiyalari lokal SQLite faylini doimiy saqlay olmaydi. Shu sababli production/Vercel uchun **Turso (libSQL)** ishlatiladi. Lokal ishlab chiqishda oddiy SQLite fayli ishlayveradi.
+Vercel serverless funksiyalari lokal fayl bazasini doimiy saqlay olmaydi. Shu sababli buyurtmalar **PostgreSQL** da saqlanadi. Neon, Supabase yoki Vercel Marketplace’dagi PostgreSQL xizmatidan foydalanish mumkin.
 
-### Vercel + Turso sozlash
+### Vercel + PostgreSQL sozlash
 
-1. [Turso](https://turso.tech/) da database yarating yoki Vercel Marketplace orqali Turso integratsiyasini ulang.
+1. PostgreSQL database yarating: masalan [Neon](https://neon.tech/), [Supabase](https://supabase.com/) yoki Vercel Marketplace PostgreSQL integratsiyasi.
 2. Vercel loyihasi **Settings → Environment Variables** ga qo‘shing:
 
 ```env
-TURSO_DATABASE_URL=libsql://your-database.turso.io
-TURSO_AUTH_TOKEN=your-turso-token
+DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=require
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your-strong-password-at-least-12-characters
-TELEGRAM_BOT_TOKEN=your-new-bot-token
+TELEGRAM_BOT_TOKEN=your-bot-token
 TELEGRAM_CHAT_ID=@Navroz0909
 ```
 
+Agar integratsiya `POSTGRES_URL` bersa, uni ham ishlatish mumkin. `DATABASE_URL` birinchi o‘rinda tekshiriladi.
+
 3. Vercel’da **Redeploy** qiling.
-4. Tekshirish uchun `https://your-site.vercel.app/api/health` oching. `ok: true` va `storage: "turso"` bo‘lishi kerak.
+4. Tekshirish uchun `https://your-site.vercel.app/api/health` oching. `ok: true` va `storage: "postgresql"` bo‘lishi kerak.
 
-Agar Turso CLI ishlatilsa:
-
-```bash
-turso db create ischi
-turso db show ischi --url
-turso db tokens create ischi
-```
-
-Chiqqan URL va tokenni Vercel environment variables ga joylang.
+Jadvallar birinchi ulanishda avtomatik yaratiladi. Alohida migration bosqichi talab qilinmaydi.
 
 ## Lokal ishga tushirish
 
-Node.js **20.9 yoki yangi kerak** (22 LTS tavsiya etiladi).
+Node.js **20.9 yoki yangi kerak** (22 LTS tavsiya etiladi). Lokal ishlab chiqish uchun ham PostgreSQL kerak.
+
+Docker orqali tez baza:
+
+```bash
+docker run --name ischi-postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=ischi \
+  -p 5432:5432 -d postgres:16
+```
+
+So‘ng:
 
 ```bash
 npm ci
 cp .env.example .env.local
-# .env.local ichida kuchli ADMIN_PASSWORD kiriting (kamida 12 belgi).
+```
+
+`.env.local` ichida:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ischi
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=kamida-12-belgili-kuchli-parol
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=@Navroz0909
+```
+
+Ishga tushirish:
+
+```bash
 npm run dev
 ```
 
 - Do‘kon: `http://localhost:3000`
 - Administrator: `http://localhost:3000/admin`
-- Lokal baza: `.data/orders.sqlite`
 - Health: `http://localhost:3000/api/health`
 
-Lokal muhitda `TURSO_DATABASE_URL` bo‘sh qoldirilsa, faylli SQLite ishlatiladi. Vercel/serverless muhitida Turso sozlanmagan bo‘lsa, checkout endi umumiy “texnik xatolik” o‘rniga aniq sozlash xabarini qaytaradi.
+Agar PostgreSQL sozlanmagan bo‘lsa, checkout umumiy “texnik xatolik” o‘rniga aniq sozlash xabarini qaytaradi.
 
 ## Server sozlamalari
 
-| O‘zgaruvchi          | Vazifasi                                               |
-| -------------------- | ------------------------------------------------------ |
-| `TURSO_DATABASE_URL` | Vercel/production uchun Turso libSQL URL               |
-| `TURSO_AUTH_TOKEN`   | Turso database tokeni                                  |
-| `DATABASE_PATH`      | Lokal/VPS SQLite fayli; standart `.data/orders.sqlite` |
-| `TELEGRAM_BOT_TOKEN` | BotFather bergan maxfiy bot tokeni                     |
-| `TELEGRAM_CHAT_ID`   | Administrator chat IDsi; raqamli ID yoki `@Navroz0909` |
-| `ADMIN_USERNAME`     | Administrator logini; standart `admin`                 |
-| `ADMIN_PASSWORD`     | Kamida 12 belgili kuchli administrator paroli          |
+| O‘zgaruvchi          | Vazifasi                                                         |
+| -------------------- | ---------------------------------------------------------------- |
+| `DATABASE_URL`       | PostgreSQL ulanish manzili; Vercel va lokal ishlab chiqish uchun |
+| `POSTGRES_URL`       | Muqobil PostgreSQL ulanish manzili; `DATABASE_URL` bo‘lmasa      |
+| `TELEGRAM_BOT_TOKEN` | BotFather bergan maxfiy bot tokeni                               |
+| `TELEGRAM_CHAT_ID`   | Administrator chat IDsi; raqamli ID yoki `@Navroz0909`           |
+| `ADMIN_USERNAME`     | Administrator logini; standart `admin`                           |
+| `ADMIN_PASSWORD`     | Kamida 12 belgili kuchli administrator paroli                    |
 
 Barcha qiymatlar **faqat serverda** ishlatiladi. `NEXT_PUBLIC_` prefiksini qo‘shmang. `.env.example` faqat bo‘sh namuna; unga haqiqiy token yoki parol yozmang.
 
@@ -132,11 +148,11 @@ npm run check       # TypeScript + unit/integration testlar
 npm run test:e2e    # production build + brauzer testlari
 ```
 
-Brauzer testlari alohida `.data/e2e.sqlite` bazasidan foydalanadi va asosiy bazani o‘zgartirmaydi. Test serveri 3001-portda ishga tushadi va test yakunida to‘xtaydi. E2E Telegram tokeni bo‘sh: testlar haqiqiy administratorga xabar yubormaydi.
+Testlar PostgreSQL sintaksisini dev-only PGlite orqali ishga tushiradi va tashqi database talab qilmaydi. Brauzer testlari alohida vaqtinchalik bazadan foydalanadi va asosiy bazani o‘zgartirmaydi. Test serveri 3001-portda ishga tushadi va test yakunida to‘xtaydi. E2E Telegram tokeni bo‘sh: testlar haqiqiy administratorga xabar yubormaydi.
 
 ## Production
 
-Vercel uchun Yuqoridagi **Vercel + Turso** bo‘limiga amal qiling. VPS/doimiy diskli Node hostingda `DATABASE_PATH` ni doimiy diskka yo‘naltirish mumkin:
+Vercel uchun yuqoridagi **Vercel + PostgreSQL** bo‘limiga amal qiling. Boshqa Node hostingda ham `DATABASE_URL` orqali PostgreSQLga ulanish mumkin:
 
 ```bash
 npm ci
@@ -144,17 +160,17 @@ npm run build
 npm start
 ```
 
-Baza va `-wal`/`-shm` fayllarini izchil zaxiralang. Bir nechta mustaqil serverless instance uchun Turso kabi umumiy doimiy baza kerak.
+PostgreSQL bazasini muntazam zaxiralang. Serverless muhitda ulanishlar sonini nazorat qilish uchun pooling/rejimdan foydalaning; kerak bo‘lsa `DATABASE_POOL_MAX` bilan maksimum ulanishlar sonini kamaytirish mumkin.
 
 ## Tuzilma
 
 - `app/` — Next.js App Router sahifalari va APIlar.
 - `components/storefront.tsx` — katalog, savat, ikki maydonli checkout va tasdiq.
 - `components/admin-*.tsx`, `components/notifications-panel.tsx` — administrator interfeysi.
-- `lib/server/db.ts` — Turso/libSQL yoki lokal SQLite, sxema va tranzaksiyalar.
+- `lib/server/db.ts` — PostgreSQL pool, sxema va tranzaksiyalar.
 - `lib/server/orders.ts` — buyurtma yaratish, qidiruv va holatlar.
 - `lib/server/telegram.ts`, `notifications.ts` — o‘zbekcha xabarlar va doimiy navbat.
 - `lib/server/auth.ts` — faqat administrator sessiyalari.
 - `tests/`, `e2e/` — avtomatik tekshiruvlar.
 
-Texnologiyalar: Next.js 16, React 19, TypeScript, libSQL/Turso, Zod, Lucide, lokal Manrope/DM Sans shriftlari.
+Texnologiyalar: Next.js 16, React 19, TypeScript, PostgreSQL, Zod, Lucide, lokal Manrope/DM Sans shriftlari.

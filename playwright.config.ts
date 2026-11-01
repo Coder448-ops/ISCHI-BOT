@@ -41,19 +41,15 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command:
-      "node -e \"for(const s of ['', '-wal', '-shm']) require('fs').rmSync('.data/e2e.sqlite'+s,{force:true})\" && npx next start --hostname 0.0.0.0 --port 3001",
+    command: 'node scripts/e2e-server.mjs',
     url: 'http://127.0.0.1:3001',
     reuseExistingServer: false,
     timeout: 120000,
     env: {
-      DATABASE_PATH: '.data/e2e.sqlite',
       ADMIN_USERNAME: 'admin',
       ADMIN_PASSWORD: 'e2e-only-admin-password-2026',
       TELEGRAM_BOT_TOKEN: '',
       TELEGRAM_CHAT_ID: '@Navroz0909',
-      TURSO_DATABASE_URL: '',
-      TURSO_AUTH_TOKEN: '',
       NEXT_TELEMETRY_DISABLED: '1',
     },
   },
