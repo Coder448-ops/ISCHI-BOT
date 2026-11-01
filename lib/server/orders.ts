@@ -66,7 +66,7 @@ export async function enqueueOrder(
 ) {
   const now = Date.now();
   await dbRun(
-    'INSERT OR IGNORE INTO notification_outbox (order_id, event_key, kind, message, next_attempt_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+    'INSERT INTO notification_outbox (order_id, event_key, kind, message, next_attempt_at, created_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (event_key) DO NOTHING',
     [order.id, eventKey, kind, orderMessage(order, kind), now, now],
     executor,
   );
@@ -83,17 +83,6 @@ export async function createOrder(
     .digest('hex');
 
   return withTransaction(async (tx) => {
-    const existing = await dbGet<OrderRow>(
-      'SELECT * FROM orders WHERE request_key = ?',
-      [input.requestId],
-      tx,
-    );
-    if (existing) {
-      if (existing.fingerprint !== fingerprint)
-        throw new ApiError(409, 'Buyurtma ma’lumotlari o‘zgargan. Savatingizni tekshiring.');
-      return { order: await mapOrder(existing, tx), reused: true };
-    }
-
     const items = canonicalItems.map((item) => {
       const product = findProduct(item.productId)!;
       return {
@@ -113,11 +102,21 @@ export async function createOrder(
       '-' +
       randomBytes(4).toString('hex').toUpperCase();
     const now = new Date().toISOString();
-    await dbRun(
-      'INSERT INTO orders (id, number, customer_name, phone, total, request_key, fingerprint, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    const inserted = await dbGet<OrderRow>(
+      'INSERT INTO orders (id, number, customer_name, phone, total, request_key, fingerprint, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (request_key) DO NOTHING RETURNING *',
       [id, number, name, phone, total, input.requestId, fingerprint, now, now],
       tx,
     );
+    if (!inserted) {
+      const existing = await dbGet<OrderRow>(
+        'SELECT * FROM orders WHERE request_key = ?',
+        [input.requestId],
+        tx,
+      );
+      if (!existing || existing.fingerprint !== fingerprint)
+        throw new ApiError(409, 'Buyurtma ma’lumotlari o‘zgargan. Savatingizni tekshiring.');
+      return { order: await mapOrder(existing, tx), reused: true };
+    }
     for (const item of items) {
       await dbRun(
         'INSERT INTO order_items (order_id, product_id, name, unit_price, quantity) VALUES (?, ?, ?, ?, ?)',
@@ -125,9 +124,7 @@ export async function createOrder(
         tx,
       );
     }
-    const saved = await dbGet<OrderRow>('SELECT * FROM orders WHERE id = ?', [id], tx);
-    if (!saved) throw new ApiError(500, 'Buyurtmani saqlab bo‘lmadi.');
-    const order = await mapOrder(saved, tx);
+    const order = await mapOrder(inserted, tx);
     await enqueueOrder(order, 'new', `new:${id}`, tx);
     return { order, reused: false };
   });
@@ -139,7 +136,7 @@ export async function changeOrderStatus(
   expectedStatus?: OrderStatus,
 ) {
   return withTransaction(async (tx) => {
-    const row = await dbGet<OrderRow>('SELECT * FROM orders WHERE id = ?', [id], tx);
+    const row = await dbGet<OrderRow>('SELECT * FROM orders WHERE id = ? FOR UPDATE', [id], tx);
     if (!row) throw new ApiError(404, 'Buyurtma topilmadi.');
     if (row.status === status) return { order: await mapOrder(row, tx), changed: false };
     if (expectedStatus && row.status !== expectedStatus)
@@ -177,7 +174,7 @@ export async function listOrders(
   if (q) {
     const escaped = q.replace(/[\\%_]/g, '\\$&');
     clauses.push(
-      "(customer_name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR number LIKE ? ESCAPE '\\')",
+      "(customer_name ILIKE ? ESCAPE '\\' OR phone ILIKE ? ESCAPE '\\' OR number ILIKE ? ESCAPE '\\')",
     );
     params.push(`%${escaped}%`, `%${escaped}%`, `%${escaped}%`);
   }
@@ -196,8 +193,8 @@ export async function listOrders(
   );
   const summary = await dbGet<Record<string, number>>(
     `SELECT COUNT(*) AS total,
-      COALESCE(SUM(status = 'Yangi'),0) AS new,
-      COALESCE(SUM(status NOT IN ('Yangi','Yetkazildi','Bekor qilindi')),0) AS active,
+      COUNT(*) FILTER (WHERE status = 'Yangi') AS new,
+      COUNT(*) FILTER (WHERE status NOT IN ('Yangi','Yetkazildi','Bekor qilindi')) AS active,
       COALESCE(SUM(CASE WHEN status = 'Yetkazildi' THEN total ELSE 0 END),0) AS revenue
      FROM orders`,
   );

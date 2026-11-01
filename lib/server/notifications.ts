@@ -1,4 +1,4 @@
-import { dbAll, dbGet, dbRun, getClient, withTransaction } from './db';
+import { dbAll, dbGet, dbRun, getPool, withTransaction } from './db';
 import { sendTelegram, telegramConfig } from './telegram';
 
 const globalWorker = globalThis as unknown as {
@@ -16,7 +16,7 @@ async function claimNext(now: number): Promise<OutboxRow | undefined> {
          SELECT 1 FROM notification_outbox earlier
          WHERE earlier.order_id = o.order_id AND earlier.id < o.id AND earlier.state != 'sent'
        )
-       ORDER BY o.id LIMIT 1`,
+       ORDER BY o.id LIMIT 1 FOR UPDATE OF o`,
       [now],
       tx,
     );
@@ -34,7 +34,7 @@ export function flushNotifications(): Promise<void> {
   if (globalWorker.ischiFlush) return globalWorker.ischiFlush;
   const work = async () => {
     if (!telegramConfig()) return;
-    await getClient();
+    await getPool();
     const now = Date.now();
     await dbRun(
       "UPDATE notification_outbox SET state = 'uncertain', last_error = 'Yuborish vaqti tugadi. Takroriy xabar yuborilmadi.' WHERE state = 'sending' AND locked_at < ?",
@@ -90,10 +90,10 @@ export async function notificationSummary() {
   const summary = await dbGet<Record<string, number>>(
     `SELECT
       COUNT(*) AS total,
-      COALESCE(SUM(state = 'sent'), 0) AS sent,
-      COALESCE(SUM(state IN ('pending','sending')), 0) AS pending,
-      COALESCE(SUM(state = 'uncertain'), 0) AS uncertain,
-      COALESCE(SUM(state = 'failed'), 0) AS failed
+      COUNT(*) FILTER (WHERE state = 'sent') AS sent,
+      COUNT(*) FILTER (WHERE state IN ('pending','sending')) AS pending,
+      COUNT(*) FILTER (WHERE state = 'uncertain') AS uncertain,
+      COUNT(*) FILTER (WHERE state = 'failed') AS failed
      FROM notification_outbox`,
   );
   return {
@@ -115,11 +115,28 @@ export async function retryConfirmedFailures() {
 }
 
 export async function listNotificationEvents() {
-  return dbAll(
+  const rows = await dbAll<{
+    id: number;
+    kind: 'new' | 'status' | 'cancel';
+    state: 'pending' | 'sending' | 'sent' | 'uncertain' | 'failed';
+    attempts: number;
+    error: string | null;
+    createdat: string | number;
+    number: string;
+  }>(
     `SELECT o.id, o.kind, o.state, o.attempts, o.last_error AS error, o.created_at AS createdAt, r.number
      FROM notification_outbox o JOIN orders r ON r.id = o.order_id
      ORDER BY o.id DESC LIMIT 100`,
   );
+  return rows.map((row) => ({
+    id: Number(row.id),
+    kind: row.kind,
+    state: row.state,
+    attempts: Number(row.attempts),
+    error: row.error,
+    createdAt: Number(row.createdat),
+    number: row.number,
+  }));
 }
 
 export async function resolveUncertainEvent(id: number, resolution: 'confirmed' | 'resend') {

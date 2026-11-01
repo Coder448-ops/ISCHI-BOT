@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { after, afterEach, beforeEach, mock, test } from 'node:test';
-import { dbGet, dbRun, getClient } from '../lib/server/db';
+import { after, afterEach, before, beforeEach, mock, test } from 'node:test';
+import { dbGet, dbRun } from '../lib/server/db';
+import { setupTestDatabase } from './helpers/database';
 import { changeOrderStatus, createOrder } from '../lib/server/orders';
 import {
   flushNotifications,
@@ -10,8 +11,6 @@ import {
 } from '../lib/server/notifications';
 import { checkoutSchema } from '../lib/validation';
 
-process.env.DATABASE_PATH = ':memory:';
-process.env.TURSO_DATABASE_URL = '';
 const ok = async () =>
   new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), { status: 200 });
 async function addOrder() {
@@ -27,16 +26,21 @@ async function addOrder() {
   ).order;
 }
 
+let cleanup: () => Promise<void>;
+before(async () => {
+  cleanup = await setupTestDatabase();
+});
 beforeEach(async () => {
-  const db = await getClient();
-  await db.executeMultiple(
-    'DELETE FROM notification_outbox; DELETE FROM order_items; DELETE FROM orders;',
-  );
+  await dbRun('DELETE FROM notification_outbox');
+  await dbRun('DELETE FROM order_items');
+  await dbRun('DELETE FROM orders');
   process.env.TELEGRAM_BOT_TOKEN = 'test-server-token';
   process.env.TELEGRAM_CHAT_ID = '@Navroz0909';
 });
 afterEach(() => mock.restoreAll());
-after(async () => (await getClient()).close());
+after(async () => {
+  await cleanup();
+});
 
 test('missing credentials retain orders and queued notifications without calling Telegram', async () => {
   process.env.TELEGRAM_BOT_TOKEN = '';

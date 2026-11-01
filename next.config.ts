@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['*.e2b.app', '*.arena.ai'],
   poweredByHeader: false,
-  serverExternalPackages: ['@libsql/client'],
+  serverExternalPackages: ['pg'],
   outputFileTracingExcludes: {
     '/*': ['./.data/**/*', './.env*', './test-results/**/*', './playwright-report/**/*'],
   },

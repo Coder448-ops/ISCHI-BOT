@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { after, beforeEach, test } from 'node:test';
+import { after, before, beforeEach, test } from 'node:test';
 import { NextRequest } from 'next/server';
 import {
   adminConfigured,
@@ -9,12 +9,11 @@ import {
   SESSION_COOKIE,
   verifyCredentials,
 } from '../lib/server/auth';
-import { dbGet, dbRun, getClient } from '../lib/server/db';
+import { dbGet, dbRun } from '../lib/server/db';
+import { setupTestDatabase } from './helpers/database';
 import { assertSameOrigin, readJson } from '../lib/server/http';
 import { ApiError } from '../lib/server/orders';
 
-process.env.DATABASE_PATH = ':memory:';
-process.env.TURSO_DATABASE_URL = '';
 process.env.ADMIN_USERNAME = 'admin';
 process.env.ADMIN_PASSWORD = 'test-only-strong-admin-password';
 const request = (cookie = '', headers: Record<string, string> = {}) =>
@@ -22,10 +21,16 @@ const request = (cookie = '', headers: Record<string, string> = {}) =>
     headers: { ...(cookie ? { cookie } : {}), ...headers },
   });
 
+let cleanup: () => Promise<void>;
+before(async () => {
+  cleanup = await setupTestDatabase();
+});
 beforeEach(async () => {
   await dbRun('DELETE FROM admin_sessions');
 });
-after(async () => (await getClient()).close());
+after(async () => {
+  await cleanup();
+});
 
 test('only configured administrator credentials are accepted', () => {
   assert.equal(adminConfigured(), true);
