@@ -1,0 +1,28 @@
+[Unit]
+Description=ISCHI Industrial persistent JSON backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ischi
+Group=ischi
+WorkingDirectory=/opt/ischi
+EnvironmentFile=/etc/ischi/env
+Environment=NODE_ENV=production
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=3000
+Environment=DATA_DIR=/var/lib/ischi/data
+ExecStart=/usr/bin/node /opt/ischi/.next/standalone/server.js
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/ischi/data
+StateDirectory=ischi
+
+[Install]
+WantedBy=multi-user.target

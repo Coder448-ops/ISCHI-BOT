@@ -1,85 +1,70 @@
-import type { Order } from '../format';
-import { money } from '../format';
-
+import type { Order } from '../types';
+import { groupNumber, unitLabel } from '../money';
 export function telegramConfig() {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
-  return token && chatId ? { token, chatId } : null;
+  const chatId = process.env.TELEGRAM_CHAT_ID?.trim() || '@Navroz0909';
+  return token ? { token, chatId } : null;
 }
 export function orderMessage(order: Order, kind: 'new' | 'status' | 'cancel') {
   const heading =
     kind === 'new'
-      ? '🛍 Yangi buyurtma!'
+      ? '🛒 Yangi buyurtma!'
       : kind === 'cancel'
-        ? '❌ Buyurtma bekor qilindi.'
+        ? '❌ Buyurtma bekor qilindi'
         : `🔄 Buyurtma holati: ${order.status}`;
-  const lines = [heading, `👤 Ism: ${order.customerName}`, `📞 Telefon: ${order.phone}`];
-  if (order.items.length === 1) {
-    lines.push(`📦 Mahsulot: ${order.items[0].name}`, `🔢 Soni: ${order.items[0].quantity} ta`);
-  } else {
-    lines.push(
-      '📦 Mahsulotlar:',
-      ...order.items.map((item) => `• ${item.name} — ${item.quantity} ta`),
-    );
-  }
-  lines.push(`💰 Jami: ${money(order.total)}`);
-  return lines.join('\n');
+  return `${heading}\n\n👤 Ism: ${order.customerName}\n📞 Telefon: ${order.phone}\n\n📦 Mahsulotlar:\n${order.items.map((i) => `• ${i.name} — ${groupNumber(i.quantity)} ${unitLabel(i.unit, 'uz')}`).join('\n')}${order.discount ? `\n🏷 Chegirma: ${groupNumber(order.discount)} so‘m` : ''}\n\n💰 Jami: ${groupNumber(order.total)} so‘m`;
 }
-export type DeliveryResult = {
-  kind: 'sent' | 'retry' | 'failed' | 'uncertain';
-  delayMs?: number;
-  error?: string;
-};
-export async function sendTelegram(message: string): Promise<DeliveryResult> {
+async function call(method: string, body?: Record<string, unknown>) {
   const config = telegramConfig();
-  if (!config) return { kind: 'retry', delayMs: 30000, error: 'Telegram sozlamalari kutilmoqda.' };
+  if (!config) return { kind: 'missing' as const, error: 'Bot tokeni sozlanmagan.' };
   try {
-    const response = await fetch(`https://api.telegram.org/bot${config.token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: config.chatId,
-        text: message,
-        link_preview_options: { is_disabled: true },
-      }),
-      signal: AbortSignal.timeout(10000),
-      redirect: 'manual',
+    const response = await fetch(`https://api.telegram.org/bot${config.token}/${method}`, {
+      method: body ? 'POST' : 'GET',
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(8000),
       cache: 'no-store',
     });
-    if (response.ok) {
-      const result = (await response.json()) as { ok?: boolean };
-      return result.ok === true
-        ? { kind: 'sent' }
-        : {
-            kind: 'uncertain',
-            error:
-              'Telegram javobi noaniq. Xabar administrator Telegram chatida tekshirilishi kerak.',
-          };
-    }
-    if (response.status === 429) {
-      const result = (await response.json().catch(() => ({}))) as {
-        parameters?: { retry_after?: number };
-      };
+    const result = (await response.json()) as {
+      ok?: boolean;
+      result?: Record<string, unknown>;
+      description?: string;
+      parameters?: { retry_after?: number };
+    };
+    if (response.ok && result.ok) return { kind: 'sent' as const, result: result.result };
+    if (response.status === 429 || response.status === 400 || response.status === 403)
       return {
-        kind: 'retry',
-        delayMs: Math.min(3600, Math.max(1, result.parameters?.retry_after || 30)) * 1000,
-        error: 'Telegram vaqtinchalik band. Xabar navbatda.',
+        kind: 'retry' as const,
+        error: 'Telegram xabarni qabul qilmadi. Bot va qabul qiluvchi sozlamalarini tekshiring.',
+        delayMs: Math.min(3600, result.parameters?.retry_after || 60) * 1000,
       };
-    }
-    if (response.status >= 500 || response.status === 408)
-      return { kind: 'uncertain', error: 'Telegram javobi noaniq. Takroriy xabar yuborilmadi.' };
     return {
-      kind: 'failed',
-      error:
-        response.status === 403 || response.status === 400
-          ? 'Telegram chatini tekshiring: administrator botni ishga tushirgan bo‘lishi kerak.'
-          : 'Telegram token yoki chat ma’lumotlarini tekshiring.',
+      kind: 'uncertain' as const,
+      error: 'Telegram javobi noaniq. Avval chatni tekshiring.',
     };
   } catch {
-    // A timeout does not prove rejection. Never blindly resend an accepted message.
     return {
-      kind: 'uncertain',
-      error: 'Telegram javobi noaniq. Takroriy xabarni oldini olish uchun to‘xtatildi.',
+      kind: 'uncertain' as const,
+      error: 'Telegram javobi noaniq. Takroriy xabar oldini olish uchun tekshiruv kutilmoqda.',
     };
   }
+}
+export async function sendOrderMessage(message: string) {
+  const config = telegramConfig();
+  if (!config) return { kind: 'missing' as const, error: 'Bot tokeni sozlanmagan.' };
+  return call('sendMessage', {
+    chat_id: config.chatId,
+    text: message,
+    link_preview_options: { is_disabled: true },
+  });
+}
+export async function verifyTelegram() {
+  if (!telegramConfig()) throw new Error('Bot tokeni sozlanmagan.');
+  const bot = await call('getMe');
+  if (bot.kind !== 'sent') throw new Error('Bot tokenini tekshiring.');
+  const chat = await call('getChat', { chat_id: telegramConfig()!.chatId });
+  if (chat.kind !== 'sent')
+    throw new Error('Qabul qiluvchi topilmadi. Administrator botni ochib /start bosishi kerak.');
+  const username = typeof chat.result?.username === 'string' ? '@' + chat.result.username : null;
+  return { botUsername: bot.result?.username, chatId: chat.result?.id, username, verified: true };
 }

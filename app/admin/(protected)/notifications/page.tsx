@@ -1,4 +1,4 @@
-import NotificationsPanel from '@/components/notifications-panel';
-export default function NotificationsPage() {
-  return <NotificationsPanel />;
+import { AdminNotifications } from '@/components/admin/operations';
+export default function Page() {
+  return <AdminNotifications />;
 }

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ISCHI Industrial</string>
+    <string name="title_activity_main">ISCHI Industrial</string>
+    <string name="package_name">uz.ischi.industrial</string>
+    <string name="custom_url_scheme">uz.ischi.industrial</string>
+</resources>

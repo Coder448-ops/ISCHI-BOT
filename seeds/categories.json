@@ -1,0 +1,292 @@
+{
+  "version": 1,
+  "revision": 0,
+  "data": [
+    {
+      "id": "armatura",
+      "name": {
+        "uz": "Armatura",
+        "ru": "Арматура",
+        "en": "Rebar"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/rebar.webp",
+      "sort": 0,
+      "enabled": true
+    },
+    {
+      "id": "shveller",
+      "name": {
+        "uz": "Shveller",
+        "ru": "Швеллер",
+        "en": "Steel channel"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-pipes.webp",
+      "sort": 1,
+      "enabled": true
+    },
+    {
+      "id": "metall-quvurlar",
+      "name": {
+        "uz": "Metall quvurlar",
+        "ru": "Металлические трубы",
+        "en": "Steel pipes"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-pipes.webp",
+      "sort": 2,
+      "enabled": true
+    },
+    {
+      "id": "profil-quvurlar",
+      "name": {
+        "uz": "Profil quvurlar",
+        "ru": "Профильные трубы",
+        "en": "Hollow sections"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-pipes.webp",
+      "sort": 3,
+      "enabled": true
+    },
+    {
+      "id": "metall-listlar",
+      "name": {
+        "uz": "Metall listlar",
+        "ru": "Металлические листы",
+        "en": "Steel sheets"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-sheet.webp",
+      "sort": 4,
+      "enabled": true
+    },
+    {
+      "id": "burchaklik-metall",
+      "name": {
+        "uz": "Burchaklik metall",
+        "ru": "Уголок",
+        "en": "Steel angles"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-pipes.webp",
+      "sort": 5,
+      "enabled": true
+    },
+    {
+      "id": "metall-balkalar",
+      "name": {
+        "uz": "Metall balkalar",
+        "ru": "Металлические балки",
+        "en": "Steel beams"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-pipes.webp",
+      "sort": 6,
+      "enabled": true
+    },
+    {
+      "id": "zanglamas-polat",
+      "name": {
+        "uz": "Zanglamaydigan po‘lat",
+        "ru": "Нержавеющая сталь",
+        "en": "Stainless steel"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-sheet.webp",
+      "sort": 7,
+      "enabled": true
+    },
+    {
+      "id": "kvadrat-metall",
+      "name": {
+        "uz": "Kvadrat metall",
+        "ru": "Квадратный прокат",
+        "en": "Square bars"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/rebar.webp",
+      "sort": 8,
+      "enabled": true
+    },
+    {
+      "id": "dumaloq-metall",
+      "name": {
+        "uz": "Dumaloq metall",
+        "ru": "Круглый прокат",
+        "en": "Round bars"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/rebar.webp",
+      "sort": 9,
+      "enabled": true
+    },
+    {
+      "id": "galvanizli-metall",
+      "name": {
+        "uz": "Galvanizli metall",
+        "ru": "Оцинкованный металл",
+        "en": "Galvanized steel"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-sheet.webp",
+      "sort": 10,
+      "enabled": true
+    },
+    {
+      "id": "metall-konstruksiyalar",
+      "name": {
+        "uz": "Metall konstruksiyalar",
+        "ru": "Металлоконструкции",
+        "en": "Steel structures"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-pipes.webp",
+      "sort": 11,
+      "enabled": true
+    },
+    {
+      "id": "maxsus-metall",
+      "name": {
+        "uz": "Maxsus metall mahsulotlari",
+        "ru": "Специальные металлоизделия",
+        "en": "Custom steel products"
+      },
+      "group": "metal",
+      "description": "",
+      "image": "/images/products/steel-sheet.webp",
+      "sort": 12,
+      "enabled": true
+    },
+    {
+      "id": "sement",
+      "name": {
+        "uz": "Sement",
+        "ru": "Цемент",
+        "en": "Cement"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/cement.webp",
+      "sort": 13,
+      "enabled": true
+    },
+    {
+      "id": "gisht",
+      "name": {
+        "uz": "G‘isht",
+        "ru": "Кирпич",
+        "en": "Bricks"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/bricks.webp",
+      "sort": 14,
+      "enabled": true
+    },
+    {
+      "id": "qum",
+      "name": {
+        "uz": "Qum",
+        "ru": "Песок",
+        "en": "Sand"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/bricks.webp",
+      "sort": 15,
+      "enabled": true
+    },
+    {
+      "id": "shagal",
+      "name": {
+        "uz": "Shag‘al",
+        "ru": "Щебень",
+        "en": "Gravel"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/bricks.webp",
+      "sort": 16,
+      "enabled": true
+    },
+    {
+      "id": "qurilish-bloklari",
+      "name": {
+        "uz": "Qurilish bloklari",
+        "ru": "Строительные блоки",
+        "en": "Building blocks"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/bricks.webp",
+      "sort": 17,
+      "enabled": true
+    },
+    {
+      "id": "tom-yopish",
+      "name": {
+        "uz": "Tom yopish materiallari",
+        "ru": "Кровельные материалы",
+        "en": "Roofing"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/steel-sheet.webp",
+      "sort": 18,
+      "enabled": true
+    },
+    {
+      "id": "mahkamlash",
+      "name": {
+        "uz": "Mahkamlash materiallari",
+        "ru": "Крепёж",
+        "en": "Fasteners"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/steel-pipes.webp",
+      "sort": 19,
+      "enabled": true
+    },
+    {
+      "id": "payvandlash",
+      "name": {
+        "uz": "Payvandlash materiallari",
+        "ru": "Сварочные материалы",
+        "en": "Welding supplies"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/rebar.webp",
+      "sort": 20,
+      "enabled": true
+    },
+    {
+      "id": "qurilish-aksessuarlari",
+      "name": {
+        "uz": "Qurilish aksessuarlari",
+        "ru": "Строительные аксессуары",
+        "en": "Construction accessories"
+      },
+      "group": "construction",
+      "description": "",
+      "image": "/images/products/steel-pipes.webp",
+      "sort": 21,
+      "enabled": true
+    }
+  ]
+}

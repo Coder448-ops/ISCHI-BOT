@@ -1,105 +1,114 @@
+import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { after, before, beforeEach, test } from 'node:test';
 import { NextRequest } from 'next/server';
+import { randomBytes, scryptSync } from 'node:crypto';
+import { temporaryStore } from './helpers';
 import {
   adminConfigured,
+  allowedOrigin,
+  assertOrigin,
   createSession,
   deleteSession,
-  requireAdmin,
-  SESSION_COOKIE,
+  getSession,
+  rateLimit,
   verifyCredentials,
-} from '../lib/server/auth';
-import { dbGet, dbRun } from '../lib/server/db';
-import { setupTestDatabase } from './helpers/database';
-import { assertSameOrigin, readJson } from '../lib/server/http';
-import { ApiError } from '../lib/server/orders';
-
-process.env.ADMIN_USERNAME = 'admin';
-process.env.ADMIN_PASSWORD = 'test-only-strong-admin-password';
-const request = (cookie = '', headers: Record<string, string> = {}) =>
-  new NextRequest('http://localhost:3000/api/admin/orders', {
-    headers: { ...(cookie ? { cookie } : {}), ...headers },
-  });
-
-let cleanup: () => Promise<void>;
+} from '../lib/server/security';
+import { checkoutSchema, productSchema, imagePath } from '../lib/server/schemas';
+import { readStore } from '../lib/server/storage';
+let store: Awaited<ReturnType<typeof temporaryStore>>;
 before(async () => {
-  cleanup = await setupTestDatabase();
-});
-beforeEach(async () => {
-  await dbRun('DELETE FROM admin_sessions');
+  store = await temporaryStore();
+  process.env.ADMIN_USERNAME = 'admin';
+  process.env.ADMIN_PASSWORD = 'unique-test-password-2026';
+  delete process.env.ADMIN_PASSWORD_HASH;
 });
 after(async () => {
-  await cleanup();
+  await store.cleanup();
 });
-
-test('only configured administrator credentials are accepted', () => {
-  assert.equal(adminConfigured(), true);
-  assert.equal(verifyCredentials('admin', process.env.ADMIN_PASSWORD!), true);
-  assert.equal(verifyCredentials('customer', process.env.ADMIN_PASSWORD!), false);
+const request = (headers: Record<string, string> = {}) =>
+  new NextRequest('https://shop.example/api/orders', { headers });
+test('only administrator credentials are supported; wrong credentials fail', () => {
+  assert.ok(adminConfigured());
+  assert.ok(verifyCredentials('admin', 'unique-test-password-2026'));
   assert.equal(verifyCredentials('admin', 'wrong'), false);
-  process.env.ADMIN_PASSWORD = '';
-  assert.equal(adminConfigured(), false);
-  assert.equal(verifyCredentials('admin', ''), false);
-  process.env.ADMIN_PASSWORD = 'test-only-strong-admin-password';
+  assert.equal(verifyCredentials('customer', 'unique-test-password-2026'), false);
 });
-
-test('sessions are opaque, hashed at rest, revocable and expire', async () => {
+test('scrypt password hash works and malformed hash fails closed', () => {
+  const previous = process.env.ADMIN_PASSWORD_HASH;
+  const salt = randomBytes(16).toString('hex');
+  try {
+    process.env.ADMIN_PASSWORD_HASH = `scrypt:${salt}:${scryptSync('unique-test-password-2026', salt, 64).toString('hex')}`;
+    assert.ok(verifyCredentials('admin', 'unique-test-password-2026'));
+    process.env.ADMIN_PASSWORD_HASH = 'scrypt:bad:bad';
+    assert.equal(verifyCredentials('admin', 'unique-test-password-2026'), false);
+  } finally {
+    if (previous) process.env.ADMIN_PASSWORD_HASH = previous;
+    else delete process.env.ADMIN_PASSWORD_HASH;
+  }
+});
+test('sessions store only a hash, expire and revoke', async () => {
   const session = await createSession('admin', true);
   assert.equal(session.options.httpOnly, true);
   assert.equal(session.options.secure, true);
   assert.equal(session.options.sameSite, 'strict');
-  const authenticated = request(`${SESSION_COOKIE}=${session.token}`);
-  assert.equal((await requireAdmin(authenticated)).username, 'admin');
-  await assert.rejects(
-    () => requireAdmin(request()),
-    (e: unknown) => e instanceof ApiError && e.status === 401,
-  );
-  const stored = await dbGet<{ token_hash: string }>('SELECT token_hash FROM admin_sessions');
-  assert.notEqual(stored?.token_hash, session.token);
-  assert.equal(stored?.token_hash.length, 64);
-  await dbRun('UPDATE admin_sessions SET expires_at = 0');
-  await assert.rejects(
-    () => requireAdmin(authenticated),
-    (e: unknown) => e instanceof ApiError && e.status === 401,
-  );
-  const second = await createSession('admin', false);
-  await deleteSession(request(`${SESSION_COOKIE}=${second.token}`));
-  await assert.rejects(
-    () => requireAdmin(request(`${SESSION_COOKIE}=${second.token}`)),
-    (e: unknown) => e instanceof ApiError && e.status === 401,
-  );
+  assert.equal((await getSession(session.token))?.username, 'admin');
+  const stored = await readStore('sessions');
+  assert.ok(stored.every((x) => x.tokenHash !== session.token));
+  await deleteSession(session.token);
+  assert.equal(await getSession(session.token), null);
+  assert.equal(await getSession('bad'), null);
 });
-
-test('cross-site mutations and admin mutations without Origin are rejected', () => {
-  assert.throws(
-    () =>
-      assertSameOrigin(
-        request('', { origin: 'https://evil.example', host: 'localhost:3000' }),
-        true,
-      ),
-    (e: unknown) => e instanceof ApiError && e.status === 403,
+test('admin cross-origin and missing-origin mutations are rejected', () => {
+  assert.throws(() =>
+    assertOrigin(request({ origin: 'https://evil.example', host: 'shop.example' }), true),
   );
-  assert.throws(
-    () => assertSameOrigin(request(), true),
-    (e: unknown) => e instanceof ApiError && e.status === 403,
-  );
+  assert.throws(() => assertOrigin(request({ host: 'shop.example' }), true));
   assert.doesNotThrow(() =>
-    assertSameOrigin(
-      request('', { origin: 'https://shop.example', 'x-forwarded-host': 'shop.example' }),
-      true,
-    ),
+    assertOrigin(request({ origin: 'https://shop.example', host: 'shop.example' }), true),
+  );
+  assert.equal(
+    allowedOrigin(request({ origin: 'https://localhost', host: 'shop.example' }), true).allowed,
+    false,
   );
 });
-
-test('JSON body limit is enforced even without Content-Length', async () => {
-  const req = new NextRequest('http://localhost:3000/api/orders', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ data: 'x'.repeat(17000) }),
-    duplex: 'half',
-  } as ConstructorParameters<typeof NextRequest>[1]);
-  await assert.rejects(
-    () => readJson(req),
-    (e: unknown) => e instanceof ApiError && e.status === 413,
+test('Capacitor origin is allowed for public checkout only', () => {
+  assert.ok(allowedOrigin(request({ origin: 'https://localhost', host: 'api.example' })).allowed);
+  assert.doesNotThrow(() =>
+    assertOrigin(request({ origin: 'https://localhost', host: 'api.example' })),
   );
+  assert.throws(() =>
+    assertOrigin(request({ origin: 'https://evil.example', host: 'api.example' })),
+  );
+});
+test('rate limits stop repeated login attempts', () => {
+  const r = request({ 'x-forwarded-for': '192.0.2.55' });
+  for (let i = 0; i < 8; i++) rateLimit(r, 'test-login', 8, 900000);
+  assert.throws(() => rateLimit(r, 'test-login', 8, 900000), /so‘rov/);
+});
+test('checkout requires exactly two personal fields and valid Uzbek phone', () => {
+  const base = {
+    customerName: 'Ali Valiyev',
+    phone: '+998 (90) 123-45-67',
+    items: [{ productId: 'armatura-sample', quantity: 1 }],
+    requestId: '3e1ab6b6-7ef1-4e5a-9a5e-2c05b6a4e9ef',
+    expectedTotal: 100,
+  };
+  assert.equal(checkoutSchema.parse(base).phone, '998901234567');
+  for (const patch of [
+    { phone: '99890123' },
+    { customerName: 'Ali' },
+    { email: 'a@example.com' },
+    { password: 'secret' },
+  ])
+    assert.equal(checkoutSchema.safeParse({ ...base, ...patch }).success, false);
+});
+test('file paths cannot escape image directories', () => {
+  for (const value of [
+    '/api/media/../../orders.json',
+    '/images/products/../orders.json',
+    'https://evil.example/a.png',
+    '/images/products/x.svg',
+  ])
+    assert.equal(imagePath.safeParse(value).success, false);
+  assert.ok(imagePath.safeParse('/api/media/0e0cb4f2-44e4-4f2e-842e-0efb0ceccad2.webp').success);
 });

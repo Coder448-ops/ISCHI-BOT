@@ -1,0 +1,1080 @@
+{
+  "version": 1,
+  "revision": 0,
+  "data": [
+    {
+      "id": "armatura-sample",
+      "name": {
+        "uz": "Armatura 12 mm • A500C",
+        "ru": "Арматура 12 мм • А500С",
+        "en": "Rebar 12 mm • A500C"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/rebar.webp"
+      ],
+      "categoryId": "armatura",
+      "code": "DEMO-0001",
+      "manufacturer": "",
+      "price": 12500,
+      "discountPrice": 11800,
+      "stock": 50000,
+      "minOrder": 500,
+      "step": 1,
+      "unit": "kg",
+      "weight": null,
+      "measurements": {
+        "diameter": 12,
+        "length": 11700
+      },
+      "materialType": "A500C po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "kvadrat-metall-sample",
+        "dumaloq-metall-sample",
+        "payvandlash-sample"
+      ],
+      "lowStockThreshold": 1000,
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": true,
+      "demo": true
+    },
+    {
+      "id": "shveller-sample",
+      "name": {
+        "uz": "Shveller 12P",
+        "ru": "Швеллер 12П",
+        "en": "Channel 12P"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-pipes.webp"
+      ],
+      "categoryId": "shveller",
+      "code": "DEMO-0002",
+      "manufacturer": "",
+      "price": 14500,
+      "discountPrice": null,
+      "stock": 12000,
+      "minOrder": 100,
+      "step": 1,
+      "unit": "kg",
+      "weight": null,
+      "measurements": {
+        "length": 12000,
+        "width": 120
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "metall-quvurlar-sample",
+        "profil-quvurlar-sample",
+        "burchaklik-metall-sample",
+        "metall-balkalar-sample"
+      ],
+      "lowStockThreshold": 200,
+      "createdAt": "2026-10-31T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "metall-quvurlar-sample",
+      "name": {
+        "uz": "Metall quvur 76 × 3.5 mm",
+        "ru": "Труба 76 × 3,5 мм",
+        "en": "Steel pipe 76 × 3.5 mm"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-pipes.webp"
+      ],
+      "categoryId": "metall-quvurlar",
+      "code": "DEMO-0003",
+      "manufacturer": "",
+      "price": 89000,
+      "discountPrice": 82000,
+      "stock": 3000,
+      "minOrder": 6,
+      "step": 1,
+      "unit": "m",
+      "weight": null,
+      "measurements": {
+        "diameter": 76,
+        "thickness": 3.5,
+        "length": 6000
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "shveller-sample",
+        "profil-quvurlar-sample",
+        "burchaklik-metall-sample",
+        "metall-balkalar-sample"
+      ],
+      "lowStockThreshold": 12,
+      "createdAt": "2026-10-30T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "profil-quvurlar-sample",
+      "name": {
+        "uz": "Profil quvur 40 × 20 × 2 mm",
+        "ru": "Профильная труба 40 × 20 × 2 мм",
+        "en": "Hollow section 40 × 20 × 2 mm"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-pipes.webp"
+      ],
+      "categoryId": "profil-quvurlar",
+      "code": "DEMO-0004",
+      "manufacturer": "",
+      "price": 38000,
+      "discountPrice": 35000,
+      "stock": 8000,
+      "minOrder": 6,
+      "step": 1,
+      "unit": "m",
+      "weight": null,
+      "measurements": {
+        "length": 6000,
+        "width": 40,
+        "thickness": 2
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "shveller-sample",
+        "metall-quvurlar-sample",
+        "burchaklik-metall-sample",
+        "metall-balkalar-sample"
+      ],
+      "lowStockThreshold": 12,
+      "createdAt": "2026-10-29T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "metall-listlar-sample",
+      "name": {
+        "uz": "Metall list 2 mm • 1250 × 2500",
+        "ru": "Лист 2 мм • 1250 × 2500",
+        "en": "Steel sheet 2 mm • 1250 × 2500"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-sheet.webp"
+      ],
+      "categoryId": "metall-listlar",
+      "code": "DEMO-0005",
+      "manufacturer": "",
+      "price": 720000,
+      "discountPrice": 680000,
+      "stock": 150,
+      "minOrder": 1,
+      "step": 1,
+      "unit": "dona",
+      "weight": 49,
+      "measurements": {
+        "thickness": 2,
+        "length": 2500,
+        "width": 1250,
+        "weight": 49
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "zanglamas-polat-sample",
+        "galvanizli-metall-sample",
+        "maxsus-metall-sample",
+        "tom-yopish-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-28T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "burchaklik-metall-sample",
+      "name": {
+        "uz": "Burchaklik 50 × 50 × 5 mm",
+        "ru": "Уголок 50 × 50 × 5 мм",
+        "en": "Steel angle 50 × 50 × 5 mm"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-pipes.webp"
+      ],
+      "categoryId": "burchaklik-metall",
+      "code": "DEMO-0006",
+      "manufacturer": "",
+      "price": 57000,
+      "discountPrice": null,
+      "stock": 5000,
+      "minOrder": 6,
+      "step": 1,
+      "unit": "m",
+      "weight": null,
+      "measurements": {
+        "length": 6000,
+        "width": 50,
+        "thickness": 5
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "shveller-sample",
+        "metall-quvurlar-sample",
+        "profil-quvurlar-sample",
+        "metall-balkalar-sample"
+      ],
+      "lowStockThreshold": 12,
+      "createdAt": "2026-10-27T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "metall-balkalar-sample",
+      "name": {
+        "uz": "Metall balka 20B1",
+        "ru": "Балка 20Б1",
+        "en": "Steel beam 20B1"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-pipes.webp"
+      ],
+      "categoryId": "metall-balkalar",
+      "code": "DEMO-0007",
+      "manufacturer": "",
+      "price": 15500,
+      "discountPrice": null,
+      "stock": 15000,
+      "minOrder": 100,
+      "step": 1,
+      "unit": "kg",
+      "weight": null,
+      "measurements": {
+        "length": 12000,
+        "width": 100
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "shveller-sample",
+        "metall-quvurlar-sample",
+        "profil-quvurlar-sample",
+        "burchaklik-metall-sample"
+      ],
+      "lowStockThreshold": 200,
+      "createdAt": "2026-10-26T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": true,
+      "demo": true
+    },
+    {
+      "id": "zanglamas-polat-sample",
+      "name": {
+        "uz": "Zanglamas list 1 mm • AISI 304",
+        "ru": "Нержавеющий лист 1 мм • AISI 304",
+        "en": "Stainless sheet 1 mm • AISI 304"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-sheet.webp"
+      ],
+      "categoryId": "zanglamas-polat",
+      "code": "DEMO-0008",
+      "manufacturer": "",
+      "price": 310000,
+      "discountPrice": 285000,
+      "stock": 500,
+      "minOrder": 1,
+      "step": 1,
+      "unit": "m²",
+      "weight": null,
+      "measurements": {
+        "thickness": 1,
+        "length": 2000,
+        "width": 1000
+      },
+      "materialType": "AISI 304",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "metall-listlar-sample",
+        "galvanizli-metall-sample",
+        "maxsus-metall-sample",
+        "tom-yopish-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-25T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "kvadrat-metall-sample",
+      "name": {
+        "uz": "Kvadrat metall 12 mm",
+        "ru": "Квадрат 12 мм",
+        "en": "Square bar 12 mm"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/rebar.webp"
+      ],
+      "categoryId": "kvadrat-metall",
+      "code": "DEMO-0009",
+      "manufacturer": "",
+      "price": 13800,
+      "discountPrice": null,
+      "stock": 6000,
+      "minOrder": 50,
+      "step": 1,
+      "unit": "kg",
+      "weight": null,
+      "measurements": {
+        "width": 12,
+        "length": 6000
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "armatura-sample",
+        "dumaloq-metall-sample",
+        "payvandlash-sample"
+      ],
+      "lowStockThreshold": 100,
+      "createdAt": "2026-10-24T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "dumaloq-metall-sample",
+      "name": {
+        "uz": "Dumaloq metall 16 mm",
+        "ru": "Круг 16 мм",
+        "en": "Round bar 16 mm"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/rebar.webp"
+      ],
+      "categoryId": "dumaloq-metall",
+      "code": "DEMO-0010",
+      "manufacturer": "",
+      "price": 13900,
+      "discountPrice": null,
+      "stock": 6000,
+      "minOrder": 50,
+      "step": 1,
+      "unit": "kg",
+      "weight": null,
+      "measurements": {
+        "diameter": 16,
+        "length": 6000
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "armatura-sample",
+        "kvadrat-metall-sample",
+        "payvandlash-sample"
+      ],
+      "lowStockThreshold": 100,
+      "createdAt": "2026-10-23T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "galvanizli-metall-sample",
+      "name": {
+        "uz": "Galvanizli list 0.5 mm",
+        "ru": "Оцинкованный лист 0,5 мм",
+        "en": "Galvanized sheet 0.5 mm"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-sheet.webp"
+      ],
+      "categoryId": "galvanizli-metall",
+      "code": "DEMO-0011",
+      "manufacturer": "",
+      "price": 98000,
+      "discountPrice": 89000,
+      "stock": 1200,
+      "minOrder": 1,
+      "step": 1,
+      "unit": "m²",
+      "weight": null,
+      "measurements": {
+        "thickness": 0.5,
+        "width": 1250,
+        "length": 2500
+      },
+      "materialType": "Galvanizli po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "metall-listlar-sample",
+        "zanglamas-polat-sample",
+        "maxsus-metall-sample",
+        "tom-yopish-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-22T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "metall-konstruksiyalar-sample",
+      "name": {
+        "uz": "Metall konstruksiya • namuna",
+        "ru": "Металлоконструкция • образец",
+        "en": "Steel structure • sample"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-pipes.webp"
+      ],
+      "categoryId": "metall-konstruksiyalar",
+      "code": "DEMO-0012",
+      "manufacturer": "",
+      "price": 18500000,
+      "discountPrice": null,
+      "stock": 20,
+      "minOrder": 1,
+      "step": 0.01,
+      "unit": "ton",
+      "weight": 1000,
+      "measurements": {
+        "weight": 1000
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "shveller-sample",
+        "metall-quvurlar-sample",
+        "profil-quvurlar-sample",
+        "burchaklik-metall-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-21T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "maxsus-metall-sample",
+      "name": {
+        "uz": "Maxsus metall detal • namuna",
+        "ru": "Специальная деталь • образец",
+        "en": "Custom steel part • sample"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-sheet.webp"
+      ],
+      "categoryId": "maxsus-metall",
+      "code": "DEMO-0013",
+      "manufacturer": "",
+      "price": 450000,
+      "discountPrice": null,
+      "stock": 100,
+      "minOrder": 1,
+      "step": 1,
+      "unit": "dona",
+      "weight": null,
+      "measurements": {
+        "width": 200,
+        "length": 300,
+        "thickness": 8
+      },
+      "materialType": "St3 po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "metall-listlar-sample",
+        "zanglamas-polat-sample",
+        "galvanizli-metall-sample",
+        "tom-yopish-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-20T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": true,
+      "demo": true
+    },
+    {
+      "id": "sement-sample",
+      "name": {
+        "uz": "Sement M400 • 50 kg",
+        "ru": "Цемент М400 • 50 кг",
+        "en": "Cement M400 • 50 kg"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/cement.webp"
+      ],
+      "categoryId": "sement",
+      "code": "DEMO-0014",
+      "manufacturer": "",
+      "price": 78000,
+      "discountPrice": 72000,
+      "stock": 2000,
+      "minOrder": 10,
+      "step": 1,
+      "unit": "qop",
+      "weight": 50,
+      "measurements": {
+        "weight": 50
+      },
+      "materialType": "Portlandsement",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [],
+      "lowStockThreshold": 20,
+      "createdAt": "2026-10-19T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "gisht-sample",
+      "name": {
+        "uz": "Qizil g‘isht M100",
+        "ru": "Красный кирпич М100",
+        "en": "Red brick M100"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/bricks.webp"
+      ],
+      "categoryId": "gisht",
+      "code": "DEMO-0015",
+      "manufacturer": "",
+      "price": 2800,
+      "discountPrice": 2500,
+      "stock": 100000,
+      "minOrder": 100,
+      "step": 1,
+      "unit": "dona",
+      "weight": 3.5,
+      "measurements": {
+        "length": 250,
+        "width": 120,
+        "thickness": 65,
+        "weight": 3.5
+      },
+      "materialType": "Sopol g‘isht",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "qum-sample",
+        "shagal-sample",
+        "qurilish-bloklari-sample"
+      ],
+      "lowStockThreshold": 200,
+      "createdAt": "2026-10-18T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "qum-sample",
+      "name": {
+        "uz": "Qurilish qumi • namuna",
+        "ru": "Строительный песок • образец",
+        "en": "Construction sand • sample"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/bricks.webp"
+      ],
+      "categoryId": "qum",
+      "code": "DEMO-0016",
+      "manufacturer": "",
+      "price": 180000,
+      "discountPrice": null,
+      "stock": 100,
+      "minOrder": 1,
+      "step": 0.01,
+      "unit": "ton",
+      "weight": 1000,
+      "measurements": {
+        "weight": 1000
+      },
+      "materialType": "Yuvilgan qum",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "gisht-sample",
+        "shagal-sample",
+        "qurilish-bloklari-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-17T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "shagal-sample",
+      "name": {
+        "uz": "Shag‘al 5–20 mm • namuna",
+        "ru": "Щебень 5–20 мм • образец",
+        "en": "Gravel 5–20 mm • sample"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/bricks.webp"
+      ],
+      "categoryId": "shagal",
+      "code": "DEMO-0017",
+      "manufacturer": "",
+      "price": 240000,
+      "discountPrice": null,
+      "stock": 100,
+      "minOrder": 1,
+      "step": 0.01,
+      "unit": "ton",
+      "weight": 1000,
+      "measurements": {
+        "diameter": 20,
+        "weight": 1000
+      },
+      "materialType": "Granit shag‘al",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "gisht-sample",
+        "qum-sample",
+        "qurilish-bloklari-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-16T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "qurilish-bloklari-sample",
+      "name": {
+        "uz": "Qurilish bloki 390 × 190 × 188",
+        "ru": "Строительный блок 390 × 190 × 188",
+        "en": "Building block 390 × 190 × 188"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/bricks.webp"
+      ],
+      "categoryId": "qurilish-bloklari",
+      "code": "DEMO-0018",
+      "manufacturer": "",
+      "price": 12500,
+      "discountPrice": null,
+      "stock": 8000,
+      "minOrder": 20,
+      "step": 1,
+      "unit": "dona",
+      "weight": 15,
+      "measurements": {
+        "length": 390,
+        "width": 190,
+        "thickness": 188,
+        "weight": 15
+      },
+      "materialType": "Beton",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "gisht-sample",
+        "qum-sample",
+        "shagal-sample"
+      ],
+      "lowStockThreshold": 40,
+      "createdAt": "2026-10-15T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "tom-yopish-sample",
+      "name": {
+        "uz": "Tom yopish listi • namuna",
+        "ru": "Кровельный лист • образец",
+        "en": "Roofing sheet • sample"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-sheet.webp"
+      ],
+      "categoryId": "tom-yopish",
+      "code": "DEMO-0019",
+      "manufacturer": "",
+      "price": 115000,
+      "discountPrice": 99000,
+      "stock": 1500,
+      "minOrder": 5,
+      "step": 1,
+      "unit": "m²",
+      "weight": null,
+      "measurements": {
+        "thickness": 0.5,
+        "length": 2000,
+        "width": 1100
+      },
+      "materialType": "Galvanizli po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "metall-listlar-sample",
+        "zanglamas-polat-sample",
+        "galvanizli-metall-sample",
+        "maxsus-metall-sample"
+      ],
+      "lowStockThreshold": 10,
+      "createdAt": "2026-10-14T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": true,
+      "demo": true
+    },
+    {
+      "id": "mahkamlash-sample",
+      "name": {
+        "uz": "Mahkamlash to‘plami • namuna",
+        "ru": "Комплект крепежа • образец",
+        "en": "Fastener kit • sample"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-pipes.webp"
+      ],
+      "categoryId": "mahkamlash",
+      "code": "DEMO-0020",
+      "manufacturer": "",
+      "price": 85000,
+      "discountPrice": null,
+      "stock": 400,
+      "minOrder": 1,
+      "step": 1,
+      "unit": "dona",
+      "weight": 2,
+      "measurements": {
+        "weight": 2
+      },
+      "materialType": "Po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "shveller-sample",
+        "metall-quvurlar-sample",
+        "profil-quvurlar-sample",
+        "burchaklik-metall-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-13T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "payvandlash-sample",
+      "name": {
+        "uz": "Payvandlash elektrodi 3 mm",
+        "ru": "Сварочный электрод 3 мм",
+        "en": "Welding electrode 3 mm"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/rebar.webp"
+      ],
+      "categoryId": "payvandlash",
+      "code": "DEMO-0021",
+      "manufacturer": "",
+      "price": 32000,
+      "discountPrice": null,
+      "stock": 600,
+      "minOrder": 5,
+      "step": 1,
+      "unit": "kg",
+      "weight": 5,
+      "measurements": {
+        "diameter": 3,
+        "length": 350,
+        "weight": 5
+      },
+      "materialType": "Payvandlash qotishmasi",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "armatura-sample",
+        "kvadrat-metall-sample",
+        "dumaloq-metall-sample"
+      ],
+      "lowStockThreshold": 10,
+      "createdAt": "2026-10-12T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    },
+    {
+      "id": "qurilish-aksessuarlari-sample",
+      "name": {
+        "uz": "Qurilish aksessuari • namuna",
+        "ru": "Строительный аксессуар • образец",
+        "en": "Construction accessory • sample"
+      },
+      "description": {
+        "uz": "Namoyish mahsuloti. Aniq texnik talablar, mavjudlik va yakuniy narx buyurtma tasdiqlanishidan oldin operator bilan kelishiladi.",
+        "ru": "Демонстрационный товар. Точные характеристики, наличие и итоговую цену уточните у оператора.",
+        "en": "Demo product. Confirm exact specifications, availability and final pricing with the operator before purchase."
+      },
+      "images": [
+        "/images/products/steel-pipes.webp"
+      ],
+      "categoryId": "qurilish-aksessuarlari",
+      "code": "DEMO-0022",
+      "manufacturer": "",
+      "price": 45000,
+      "discountPrice": null,
+      "stock": 8,
+      "minOrder": 1,
+      "step": 1,
+      "unit": "dona",
+      "weight": 0.5,
+      "measurements": {
+        "weight": 0.5
+      },
+      "materialType": "Po‘lat",
+      "specifications": [
+        {
+          "label": "Standart",
+          "value": "Namuna — operator bilan aniqlashtiring"
+        }
+      ],
+      "enabled": true,
+      "relatedIds": [
+        "shveller-sample",
+        "metall-quvurlar-sample",
+        "profil-quvurlar-sample",
+        "burchaklik-metall-sample"
+      ],
+      "lowStockThreshold": 2,
+      "createdAt": "2026-10-11T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "featured": false,
+      "demo": true
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "revision": 0,
+  "data": {
+    "companyName": "ISCHI Industrial",
+    "logo": "",
+    "phones": [],
+    "address": {
+      "uz": "Administrator tomonidan to‘ldiriladi.",
+      "ru": "Заполняется администратором.",
+      "en": "To be provided by the administrator."
+    },
+    "workingHours": {
+      "uz": "Administrator tomonidan to‘ldiriladi.",
+      "ru": "Заполняется администратором.",
+      "en": "To be provided by the administrator."
+    },
+    "about": {
+      "uz": "ISCHI Industrial — metall va qurilish materiallari uchun yagona kompaniya onlayn do‘koni. Kompaniya haqidagi rasmiy ma’lumotlar administrator tomonidan joylanadi.",
+      "ru": "ISCHI Industrial — интернет-магазин одной компании по продаже металла и строительных материалов. Официальную информацию добавит администратор.",
+      "en": "ISCHI Industrial is a single-company metal and construction materials store. Official company information will be provided by the administrator."
+    },
+    "delivery": {
+      "uz": "Administrator tomonidan to‘ldiriladi.",
+      "ru": "Заполняется администратором.",
+      "en": "To be provided by the administrator."
+    },
+    "payment": {
+      "uz": "Administrator tomonidan to‘ldiriladi.",
+      "ru": "Заполняется администратором.",
+      "en": "To be provided by the administrator."
+    },
+    "privacy": {
+      "uz": "Buyurtmani rasmiylashtirish uchun faqat ism, familiya va telefon raqami qayta ishlanadi. Ma’lumotlar buyurtmani tasdiqlash va yetkazish uchun ishlatiladi. Mijoz hisobi yaratilmaydi. Savat va til tanlovi qurilmangizda saqlanadi.",
+      "ru": "Для заказа обрабатываются только имя, фамилия и номер телефона. Данные используются для подтверждения и доставки заказа. Аккаунт не создаётся. Корзина и язык хранятся на вашем устройстве.",
+      "en": "Only your full name and phone number are processed to handle your order. They are used to confirm and deliver it. No customer account is created. Cart and language preferences stay on your device."
+    },
+    "websiteTitle": "ISCHI Industrial — metall va qurilish materiallari",
+    "websiteDescription": "Metall prokati va qurilish materiallari. Ro‘yxatdan o‘tmasdan buyurtma bering.",
+    "whatsapp": "",
+    "faq": [
+      {
+        "id": "guest-order",
+        "question": {
+          "uz": "Buyurtma uchun ro‘yxatdan o‘tish kerakmi?",
+          "ru": "Нужно ли регистрироваться?",
+          "en": "Do I need an account?"
+        },
+        "answer": {
+          "uz": "Yo‘q. Faqat ism, familiya va telefon raqamingizni kiriting.",
+          "ru": "Нет. Укажите только имя, фамилию и телефон.",
+          "en": "No. Just enter your full name and phone number."
+        }
+      },
+      {
+        "id": "units",
+        "question": {
+          "uz": "Narx qaysi o‘lchov birligida?",
+          "ru": "В какой единице указана цена?",
+          "en": "How are prices measured?"
+        },
+        "answer": {
+          "uz": "Har bir mahsulotning o‘z birligi bor: kg, tonna, metr, m², dona yoki qop. Narx shu birlikda ko‘rsatiladi.",
+          "ru": "У каждого товара своя единица: кг, тонна, метр, м², штука или мешок. Цена указана за эту единицу.",
+          "en": "Each product has its own unit: kg, tonnes, metres, m², pieces or bags. Prices are per displayed unit."
+        }
+      },
+      {
+        "id": "delivery-cost",
+        "question": {
+          "uz": "Yetkazib berish narxi qancha?",
+          "ru": "Сколько стоит доставка?",
+          "en": "How much is delivery?"
+        },
+        "answer": {
+          "uz": "Yetkazish shartlari va narxi operator bilan kelishiladi. Aniq ma’lumot kompaniya sozlamalarida e’lon qilinadi.",
+          "ru": "Условия и стоимость доставки согласуются с оператором. Точная информация будет опубликована компанией.",
+          "en": "Delivery terms and costs are confirmed by the operator. Official details will be published by the company."
+        }
+      }
+    ],
+    "testimonials": [],
+    "announcement": {
+      "uz": "Namoyish katalogi — narxlar namunaviy. Haqiqiy mahsulotlarni administrator panelida joylang.",
+      "ru": "Демонстрационный каталог — цены примерные. Добавьте реальные товары в панели администратора.",
+      "en": "Demo catalog — sample prices. Add your real products in the admin dashboard."
+    },
+    "demoCatalog": true,
+    "websiteUrl": ""
+  }
+}

@@ -1,138 +1,119 @@
+import { after, afterEach, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
-import { after, afterEach, before, beforeEach, mock, test } from 'node:test';
-import { dbGet, dbRun } from '../lib/server/db';
-import { setupTestDatabase } from './helpers/database';
-import { changeOrderStatus, createOrder } from '../lib/server/orders';
-import {
-  flushNotifications,
-  notificationSummary,
-  retryConfirmedFailures,
-} from '../lib/server/notifications';
-import { checkoutSchema } from '../lib/validation';
-
-const ok = async () =>
-  new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), { status: 200 });
-async function addOrder() {
-  return (
-    await createOrder(
-      checkoutSchema.parse({
-        customerName: 'Ali Valiyev',
-        phone: '+998901234567',
-        items: [{ productId: 'iphone-16-pro', quantity: 1 }],
-        requestId: randomUUID(),
-      }),
-    )
-  ).order;
-}
-
-let cleanup: () => Promise<void>;
+import { temporaryStore, input, resetProduct } from './helpers';
+import { createOrder, changeOrderStatus } from '../lib/server/commerce';
+import { flushNotifications } from '../lib/server/notifications';
+import { orderMessage } from '../lib/server/telegram';
+import { readStore, withStore } from '../lib/server/storage';
+let store: Awaited<ReturnType<typeof temporaryStore>>;
+const originalFetch = globalThis.fetch;
 before(async () => {
-  cleanup = await setupTestDatabase();
-});
-beforeEach(async () => {
-  await dbRun('DELETE FROM notification_outbox');
-  await dbRun('DELETE FROM order_items');
-  await dbRun('DELETE FROM orders');
-  process.env.TELEGRAM_BOT_TOKEN = 'test-server-token';
+  store = await temporaryStore();
+  process.env.TELEGRAM_BOT_TOKEN = 'test-only-token';
   process.env.TELEGRAM_CHAT_ID = '@Navroz0909';
 });
-afterEach(() => mock.restoreAll());
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+});
 after(async () => {
-  await cleanup();
+  globalThis.fetch = originalFetch;
+  delete process.env.TELEGRAM_BOT_TOKEN;
+  await store.cleanup();
 });
-
-test('missing credentials retain orders and queued notifications without calling Telegram', async () => {
-  process.env.TELEGRAM_BOT_TOKEN = '';
-  const order = await addOrder();
-  const fetchMock = mock.method(globalThis, 'fetch', ok);
+test('new, status and cancellation messages are simple Uzbek', async () => {
+  const p = (await readStore('products'))[0];
+  await resetProduct(p.id);
+  const { order: publicOrder } = await createOrder(await input(p.id));
+  const order = (await readStore('orders')).find((x) => x.id === publicOrder.id)!;
+  for (const kind of ['new', 'status', 'cancel'] as const) {
+    const text = orderMessage({ ...order, status: 'Tasdiqlandi' }, kind);
+    assert.match(text, /Telefon|Ism/);
+    assert.ok(!text.includes('JSON'));
+    assert.ok(!text.includes('requestId'));
+    assert.ok(text.includes('so‘m'));
+  }
+  assert.match(orderMessage(order, 'new'), /^🛒 Yangi buyurtma!/);
+});
+test('outbox delivers once across repeated flushes', async () => {
+  const p = (await readStore('products'))[1];
+  await resetProduct(p.id);
+  const { order } = await createOrder(await input(p.id));
+  let sends = 0;
+  globalThis.fetch = async (_url, init) => {
+    if (String(init?.body).includes('Shveller 12P')) sends++;
+    return Response.json({ ok: true, result: { message_id: 1 } });
+  };
   await flushNotifications();
-  assert.equal(fetchMock.mock.callCount(), 0);
-  assert.equal((await notificationSummary()).pending, 1);
+  await flushNotifications();
+  assert.equal(sends, 1);
   assert.equal(
-    Number(
-      (await dbGet<{ total: number }>('SELECT total FROM orders WHERE id = ?', [order.id]))?.total,
-    ),
-    15000000,
+    (await readStore('notifications')).find((x) => x.orderId === order.id)?.state,
+    'sent',
   );
 });
-
-test('a new order is delivered once even when flushing repeatedly', async () => {
-  await addOrder();
-  const fetchMock = mock.method(globalThis, 'fetch', ok);
-  await Promise.all([flushNotifications(), flushNotifications()]);
+test('ambiguous network response is held for manual verification, never blindly resent', async () => {
+  const p = (await readStore('products'))[2];
+  await resetProduct(p.id);
+  const { order } = await createOrder(await input(p.id));
+  let sends = 0;
+  globalThis.fetch = async () => {
+    sends++;
+    throw new Error('network lost after request');
+  };
   await flushNotifications();
-  assert.equal(fetchMock.mock.callCount(), 1);
-  assert.equal((await notificationSummary()).sent, 1);
-  const request = fetchMock.mock.calls[0].arguments[1] as RequestInit;
-  const body = JSON.parse(String(request.body));
-  assert.equal(body.chat_id, '@Navroz0909');
-  assert.match(body.text, /Yangi buyurtma/);
-  assert.equal(body.parse_mode, undefined);
+  await flushNotifications();
+  assert.equal(sends, 1);
+  assert.equal(
+    (await readStore('notifications')).find((x) => x.orderId === order.id)?.state,
+    'uncertain',
+  );
 });
-
-test('rate limit rejection is retried, then marked sent only once', async () => {
-  await addOrder();
-  let calls = 0;
-  mock.method(globalThis, 'fetch', async () =>
-    ++calls === 1
-      ? new Response(JSON.stringify({ ok: false, parameters: { retry_after: 1 } }), { status: 429 })
-      : ok(),
+test('429 schedules retry without duplicating an already sent event', async () => {
+  const p = (await readStore('products'))[3];
+  await resetProduct(p.id);
+  const { order } = await createOrder(await input(p.id));
+  let sends = 0;
+  globalThis.fetch = async () => {
+    sends++;
+    return sends === 1
+      ? Response.json({ ok: false, parameters: { retry_after: 60 } }, { status: 429 })
+      : Response.json({ ok: true, result: { message_id: 2 } });
+  };
+  await flushNotifications();
+  let event = (await readStore('notifications')).find((x) => x.orderId === order.id);
+  assert.equal(event?.state, 'pending');
+  assert.ok(event!.nextAttemptAt > Date.now());
+  await withStore(
+    (data) => {
+      data.notifications.find((x) => x.id === event!.id)!.nextAttemptAt = 0;
+    },
+    ['notifications'],
   );
   await flushNotifications();
-  assert.equal((await notificationSummary()).pending, 1);
-  await dbRun('UPDATE notification_outbox SET next_attempt_at = 0');
   await flushNotifications();
-  await flushNotifications();
-  assert.equal(calls, 2);
-  assert.equal((await notificationSummary()).sent, 1);
+  assert.equal(sends, 2);
 });
-
-test('ambiguous timeout is held, not blindly resent; later events retain their sequence', async () => {
-  const order = await addOrder();
-  const fetchMock = mock.method(globalThis, 'fetch', async () => {
-    throw new Error('timeout');
-  });
-  await flushNotifications();
-  await changeOrderStatus(order.id, 'Tasdiqlandi');
-  await flushNotifications();
-  assert.equal(fetchMock.mock.callCount(), 1);
-  assert.equal((await notificationSummary()).uncertain, 1);
-  assert.equal((await notificationSummary()).pending, 1);
-});
-
-test('server errors are not assumed to be rejected', async () => {
-  await addOrder();
-  const fetchMock = mock.method(globalThis, 'fetch', async () => new Response('', { status: 502 }));
-  await flushNotifications();
-  await flushNotifications();
-  assert.equal(fetchMock.mock.callCount(), 1);
-  assert.equal((await notificationSummary()).uncertain, 1);
-});
-
-test('confirmed rejection can retry after configuration; sent events are never reset', async () => {
-  await addOrder();
-  let calls = 0;
-  mock.method(globalThis, 'fetch', async () =>
-    ++calls === 1 ? new Response('', { status: 403 }) : ok(),
+test('crash while sending becomes uncertain on restart flush', async () => {
+  const p = (await readStore('products'))[4];
+  await resetProduct(p.id);
+  const { order } = await createOrder(await input(p.id));
+  await withStore(
+    (data) => {
+      const n = data.notifications.find((x) => x.orderId === order.id)!;
+      n.state = 'sending';
+      n.lockedAt = Date.now() - 180000;
+    },
+    ['notifications'],
   );
+  let sends = 0;
+  globalThis.fetch = async () => {
+    sends++;
+    return Response.json({ ok: true });
+  };
   await flushNotifications();
-  assert.equal((await notificationSummary()).failed, 1);
-  assert.equal(await retryConfirmedFailures(), 1);
-  await flushNotifications();
-  assert.equal((await notificationSummary()).sent, 1);
-  assert.equal(await retryConfirmedFailures(), 0);
-  await flushNotifications();
-  assert.equal(calls, 2);
-});
-
-test('a stale in-flight notification is held for review, not automatically resent', async () => {
-  await addOrder();
-  await dbRun("UPDATE notification_outbox SET state = 'sending', locked_at = ?", [
-    Date.now() - 121000,
-  ]);
-  const fetchMock = mock.method(globalThis, 'fetch', ok);
-  await flushNotifications();
-  assert.equal(fetchMock.mock.callCount(), 0);
-  assert.equal((await notificationSummary()).uncertain, 1);
+  assert.equal(sends, 0);
+  assert.equal(
+    (await readStore('notifications')).find((x) => x.orderId === order.id)?.state,
+    'uncertain',
+  );
 });

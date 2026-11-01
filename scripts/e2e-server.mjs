@@ -1,43 +1,38 @@
 import { spawn } from 'node:child_process';
-import { PGlite } from '@electric-sql/pglite';
-import { createServer, LogLevel } from 'pglite-server';
-
-const db = new PGlite();
-await db.waitReady;
-const server = createServer(db, { logLevel: LogLevel.Error });
-await new Promise((resolve, reject) => {
-  server.once('error', reject);
-  server.listen(0, '127.0.0.1', resolve);
-});
-const { port } = server.address();
-const databaseUrl = `postgresql://postgres@127.0.0.1:${port}/postgres?sslmode=disable`;
-
-const child = spawn(
-  process.execPath,
-  ['node_modules/next/dist/bin/next', 'start', '--hostname', '0.0.0.0', '--port', '3001'],
-  {
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      DATABASE_URL: databaseUrl,
-      POSTGRES_URL: '',
-      DATABASE_POOL_MAX: '1',
-      NEXT_TELEMETRY_DISABLED: '1',
-    },
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+const directory = await mkdtemp(path.join(tmpdir(), 'ischi-e2e-'));
+const child = spawn(process.execPath, ['scripts/start-server.mjs'], {
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    DATA_DIR: directory,
+    PORT: '3001',
+    HOSTNAME: '0.0.0.0',
+    NODE_ENV: 'production',
+    NEXT_TELEMETRY_DISABLED: '1',
   },
-);
-
-let shuttingDown = false;
-async function shutdown(code = 0) {
-  if (shuttingDown) return;
-  shuttingDown = true;
-  if (!child.killed) child.kill('SIGTERM');
-  await new Promise((resolve) => server.close(resolve));
-  await db.close();
+});
+let stopping = false;
+const stop = async (code = 0) => {
+  if (stopping) return;
+  stopping = true;
+  child.kill('SIGTERM');
+  const timer = setTimeout(() => child.kill('SIGKILL'), 5000);
+  timer.unref();
+  await new Promise((resolve) => {
+    if (child.exitCode !== null) resolve();
+    else child.once('exit', resolve);
+  });
+  clearTimeout(timer);
+  await rm(directory, { recursive: true, force: true });
   process.exit(code);
-}
-
-child.on('exit', (code) => void shutdown(code ?? 0));
-child.on('error', () => void shutdown(1));
-process.on('SIGINT', () => void shutdown(0));
-process.on('SIGTERM', () => void shutdown(0));
+};
+process.on('SIGTERM', () => void stop());
+process.on('SIGINT', () => void stop());
+child.on('exit', (code) => void stop(code ?? 1));
+child.on('error', (error) => {
+  console.error(error.message);
+  void stop(1);
+});
