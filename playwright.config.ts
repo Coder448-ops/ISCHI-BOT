@@ -52,6 +52,8 @@ export default defineConfig({
       ADMIN_PASSWORD: 'e2e-only-admin-password-2026',
       TELEGRAM_BOT_TOKEN: '',
       TELEGRAM_CHAT_ID: '@Navroz0909',
+      TURSO_DATABASE_URL: '',
+      TURSO_AUTH_TOKEN: '',
       NEXT_TELEMETRY_DISABLED: '1',
     },
   },

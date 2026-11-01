@@ -1,27 +1,26 @@
 import { after, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/server/auth';
-import { getDb } from '@/lib/server/db';
 import { ApiError } from '@/lib/server/orders';
 import {
   flushNotifications,
+  listNotificationEvents,
   notificationSummary,
+  resolveUncertainEvent,
   retryConfirmedFailures,
 } from '@/lib/server/notifications';
 import { assertSameOrigin, errorResponse, privateJson, readJson } from '@/lib/server/http';
+
 export async function GET(request: NextRequest) {
   try {
-    requireAdmin(request);
-    const events = getDb()
-      .prepare(
-        'SELECT o.id, o.kind, o.state, o.attempts, o.last_error AS error, o.created_at AS createdAt, r.number FROM notification_outbox o JOIN orders r ON r.id = o.order_id ORDER BY o.id DESC LIMIT 100',
-      )
-      .all();
-    return privateJson({ events, summary: notificationSummary() });
+    await requireAdmin(request);
+    const events = await listNotificationEvents();
+    return privateJson({ events, summary: await notificationSummary() });
   } catch (error) {
     return errorResponse(error);
   }
 }
+
 const actionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('retry') }).strict(),
   z
@@ -32,28 +31,18 @@ const actionSchema = z.discriminatedUnion('action', [
     })
     .strict(),
 ]);
+
 export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request, true);
-    requireAdmin(request);
+    await requireAdmin(request);
     const parsed = actionSchema.safeParse(await readJson(request));
     if (!parsed.success) throw new ApiError(400, 'Amalni tekshiring.');
-    if (parsed.data.action === 'retry') retryConfirmedFailures();
-    else {
-      const { id, resolution } = parsed.data;
-      const result = getDb()
-        .prepare(
-          "UPDATE notification_outbox SET state = ?, delivered_at = ?, next_attempt_at = 0, last_error = ? WHERE id = ? AND state = 'uncertain'",
-        )
-        .run(
-          resolution === 'confirmed' ? 'sent' : 'pending',
-          resolution === 'confirmed' ? Date.now() : null,
-          resolution === 'confirmed'
-            ? 'Administrator Telegramda yuborilganini tasdiqladi.'
-            : 'Administrator xabar yuborilmaganini tekshirdi.',
-          id,
-        );
-      if (!result.changes) throw new ApiError(409, 'Xabar holati o‘zgargan. Sahifani yangilang.');
+    if (parsed.data.action === 'retry') {
+      await retryConfirmedFailures();
+    } else {
+      const changed = await resolveUncertainEvent(parsed.data.id, parsed.data.resolution);
+      if (!changed) throw new ApiError(409, 'Xabar holati o‘zgargan. Sahifani yangilang.');
     }
     after(() => flushNotifications());
     return privateJson({ ok: true });

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { findProduct } from '../catalog';
 import { ORDER_STATUSES, type Order, type OrderStatus } from '../format';
 import { checkoutSchema } from '../validation';
-import { getDb, transaction } from './db';
+import { dbAll, dbGet, dbRun, withTransaction, type DbExecutor } from './db';
 import { orderMessage } from './telegram';
 
 type OrderRow = {
@@ -19,6 +19,7 @@ type OrderRow = {
   fingerprint: string;
 };
 type ItemRow = { product_id: string; name: string; quantity: number; unit_price: number };
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -27,62 +28,72 @@ export class ApiError extends Error {
     super(message);
   }
 }
-function mapOrder(row: OrderRow): Order {
-  const items = getDb()
-    .prepare(
-      'SELECT product_id, name, quantity, unit_price FROM order_items WHERE order_id = ? ORDER BY id',
-    )
-    .all(row.id) as unknown as ItemRow[];
+
+async function mapOrder(row: OrderRow, executor?: DbExecutor): Promise<Order> {
+  const items = await dbAll<ItemRow>(
+    'SELECT product_id, name, quantity, unit_price FROM order_items WHERE order_id = ? ORDER BY id',
+    [row.id],
+    executor,
+  );
   return {
     id: row.id,
     number: row.number,
     customerName: row.customer_name,
     phone: row.phone,
-    total: row.total,
+    total: Number(row.total),
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     items: items.map((i) => ({
       productId: i.product_id,
       name: i.name,
-      quantity: i.quantity,
-      unitPrice: i.unit_price,
+      quantity: Number(i.quantity),
+      unitPrice: Number(i.unit_price),
     })),
   };
 }
-export function getOrder(id: string) {
-  const row = getDb().prepare('SELECT * FROM orders WHERE id = ?').get(id) as unknown as
-    | OrderRow
-    | undefined;
+
+export async function getOrder(id: string) {
+  const row = await dbGet<OrderRow>('SELECT * FROM orders WHERE id = ?', [id]);
   return row ? mapOrder(row) : null;
 }
-export function enqueueOrder(order: Order, kind: 'new' | 'status' | 'cancel', eventKey: string) {
-  getDb()
-    .prepare(
-      'INSERT OR IGNORE INTO notification_outbox (order_id, event_key, kind, message, next_attempt_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-    )
-    .run(order.id, eventKey, kind, orderMessage(order, kind), Date.now(), Date.now());
+
+export async function enqueueOrder(
+  order: Order,
+  kind: 'new' | 'status' | 'cancel',
+  eventKey: string,
+  executor?: DbExecutor,
+) {
+  const now = Date.now();
+  await dbRun(
+    'INSERT OR IGNORE INTO notification_outbox (order_id, event_key, kind, message, next_attempt_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+    [order.id, eventKey, kind, orderMessage(order, kind), now, now],
+    executor,
+  );
 }
-export function createOrder(input: z.infer<typeof checkoutSchema>): {
-  order: Order;
-  reused: boolean;
-} {
+
+export async function createOrder(
+  input: z.infer<typeof checkoutSchema>,
+): Promise<{ order: Order; reused: boolean }> {
   const canonicalItems = [...input.items].sort((a, b) => a.productId.localeCompare(b.productId));
   const name = input.customerName.trim().replace(/\s+/g, ' ');
   const phone = '+998' + input.phone.replace(/\D/g, '').slice(3);
   const fingerprint = createHash('sha256')
     .update(JSON.stringify({ name, phone, items: canonicalItems }))
     .digest('hex');
-  return transaction(() => {
-    const db = getDb();
-    const existing = db
-      .prepare('SELECT * FROM orders WHERE request_key = ?')
-      .get(input.requestId) as unknown as OrderRow | undefined;
+
+  return withTransaction(async (tx) => {
+    const existing = await dbGet<OrderRow>(
+      'SELECT * FROM orders WHERE request_key = ?',
+      [input.requestId],
+      tx,
+    );
     if (existing) {
       if (existing.fingerprint !== fingerprint)
         throw new ApiError(409, 'Buyurtma ma’lumotlari o‘zgargan. Savatingizni tekshiring.');
-      return { order: mapOrder(existing), reused: true };
+      return { order: await mapOrder(existing, tx), reused: true };
     }
+
     const items = canonicalItems.map((item) => {
       const product = findProduct(item.productId)!;
       return {
@@ -94,6 +105,7 @@ export function createOrder(input: z.infer<typeof checkoutSchema>): {
     });
     const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
     if (!Number.isSafeInteger(total)) throw new ApiError(400, 'Buyurtma summasi noto‘g‘ri.');
+
     const id = randomUUID();
     const number =
       'ISH-' +
@@ -101,53 +113,61 @@ export function createOrder(input: z.infer<typeof checkoutSchema>): {
       '-' +
       randomBytes(4).toString('hex').toUpperCase();
     const now = new Date().toISOString();
-    db.prepare(
+    await dbRun(
       'INSERT INTO orders (id, number, customer_name, phone, total, request_key, fingerprint, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    ).run(id, number, name, phone, total, input.requestId, fingerprint, now, now);
-    const insert = db.prepare(
-      'INSERT INTO order_items (order_id, product_id, name, unit_price, quantity) VALUES (?, ?, ?, ?, ?)',
+      [id, number, name, phone, total, input.requestId, fingerprint, now, now],
+      tx,
     );
-    for (const item of items)
-      insert.run(id, item.productId, item.name, item.unitPrice, item.quantity);
-    const order = mapOrder(
-      db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as unknown as OrderRow,
-    );
-    enqueueOrder(order, 'new', `new:${id}`);
+    for (const item of items) {
+      await dbRun(
+        'INSERT INTO order_items (order_id, product_id, name, unit_price, quantity) VALUES (?, ?, ?, ?, ?)',
+        [id, item.productId, item.name, item.unitPrice, item.quantity],
+        tx,
+      );
+    }
+    const saved = await dbGet<OrderRow>('SELECT * FROM orders WHERE id = ?', [id], tx);
+    if (!saved) throw new ApiError(500, 'Buyurtmani saqlab bo‘lmadi.');
+    const order = await mapOrder(saved, tx);
+    await enqueueOrder(order, 'new', `new:${id}`, tx);
     return { order, reused: false };
   });
 }
-export function changeOrderStatus(id: string, status: OrderStatus, expectedStatus?: OrderStatus) {
-  return transaction(() => {
-    const db = getDb();
-    const row = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as unknown as
-      | OrderRow
-      | undefined;
+
+export async function changeOrderStatus(
+  id: string,
+  status: OrderStatus,
+  expectedStatus?: OrderStatus,
+) {
+  return withTransaction(async (tx) => {
+    const row = await dbGet<OrderRow>('SELECT * FROM orders WHERE id = ?', [id], tx);
     if (!row) throw new ApiError(404, 'Buyurtma topilmadi.');
-    if (row.status === status) return { order: mapOrder(row), changed: false };
+    if (row.status === status) return { order: await mapOrder(row, tx), changed: false };
     if (expectedStatus && row.status !== expectedStatus)
       throw new ApiError(409, 'Buyurtma holati o‘zgargan. Sahifani yangilang.');
     if (row.status === 'Bekor qilindi' || row.status === 'Yetkazildi')
       throw new ApiError(409, 'Yakunlangan buyurtma holatini o‘zgartirib bo‘lmaydi.');
-    db.prepare('UPDATE orders SET status = ?, updated_at = ? WHERE id = ?').run(
-      status,
-      new Date().toISOString(),
-      id,
+
+    await dbRun(
+      'UPDATE orders SET status = ?, updated_at = ? WHERE id = ?',
+      [status, new Date().toISOString(), id],
+      tx,
     );
-    const order = mapOrder(
-      db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as unknown as OrderRow,
-    );
-    enqueueOrder(
+    const saved = await dbGet<OrderRow>('SELECT * FROM orders WHERE id = ?', [id], tx);
+    if (!saved) throw new ApiError(500, 'Buyurtma holatini saqlab bo‘lmadi.');
+    const order = await mapOrder(saved, tx);
+    await enqueueOrder(
       order,
       status === 'Bekor qilindi' ? 'cancel' : 'status',
       `status:${id}:${randomUUID()}`,
+      tx,
     );
     return { order, changed: true };
   });
 }
-export function listOrders(
+
+export async function listOrders(
   options: { q?: string; status?: string; page?: number; limit?: number } = {},
 ) {
-  const db = getDb();
   const q = (options.q || '').trim().slice(0, 100);
   const status = ORDER_STATUSES.includes(options.status as OrderStatus) ? options.status! : '';
   const limit = Math.min(50, Math.max(1, options.limit || 12));
@@ -166,23 +186,33 @@ export function listOrders(
     params.push(status);
   }
   const where = clauses.length ? 'WHERE ' + clauses.join(' AND ') : '';
-  const count = db
-    .prepare(`SELECT COUNT(*) AS count FROM orders ${where}`)
-    .get(...params) as unknown as { count: number };
-  const rows = db
-    .prepare(`SELECT * FROM orders ${where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`)
-    .all(...params, limit, (page - 1) * limit) as unknown as OrderRow[];
-  const summary = db
-    .prepare(
-      `SELECT COUNT(*) AS total, COALESCE(SUM(status = 'Yangi'),0) AS new, COALESCE(SUM(status NOT IN ('Yangi','Yetkazildi','Bekor qilindi')),0) AS active, COALESCE(SUM(CASE WHEN status = 'Yetkazildi' THEN total ELSE 0 END),0) AS revenue FROM orders`,
-    )
-    .get() as Record<string, number>;
+  const count = await dbGet<{ count: number }>(
+    `SELECT COUNT(*) AS count FROM orders ${where}`,
+    params,
+  );
+  const rows = await dbAll<OrderRow>(
+    `SELECT * FROM orders ${where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`,
+    [...params, limit, (page - 1) * limit],
+  );
+  const summary = await dbGet<Record<string, number>>(
+    `SELECT COUNT(*) AS total,
+      COALESCE(SUM(status = 'Yangi'),0) AS new,
+      COALESCE(SUM(status NOT IN ('Yangi','Yetkazildi','Bekor qilindi')),0) AS active,
+      COALESCE(SUM(CASE WHEN status = 'Yetkazildi' THEN total ELSE 0 END),0) AS revenue
+     FROM orders`,
+  );
+  const total = Number(count?.count || 0);
   return {
-    orders: rows.map(mapOrder),
-    total: count.count,
+    orders: await Promise.all(rows.map((row) => mapOrder(row))),
+    total,
     page,
     limit,
-    pages: Math.max(1, Math.ceil(count.count / limit)),
-    summary,
+    pages: Math.max(1, Math.ceil(total / limit)),
+    summary: {
+      total: Number(summary?.total || 0),
+      new: Number(summary?.new || 0),
+      active: Number(summary?.active || 0),
+      revenue: Number(summary?.revenue || 0),
+    },
   };
 }

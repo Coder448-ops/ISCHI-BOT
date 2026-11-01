@@ -3,10 +3,10 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['*.e2b.app', '*.arena.ai'],
   poweredByHeader: false,
+  serverExternalPackages: ['@libsql/client'],
   outputFileTracingExcludes: {
     '/*': ['./.data/**/*', './.env*', './test-results/**/*', './playwright-report/**/*'],
   },
-  serverExternalPackages: ['node:sqlite'],
   async headers() {
     return [
       {
@@ -24,4 +24,5 @@ const nextConfig: NextConfig = {
     ];
   },
 };
+
 export default nextConfig;
