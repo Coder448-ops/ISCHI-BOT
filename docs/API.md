@@ -2,6 +2,8 @@
 
 Base URL: `https://your-real-domain`. Barcha javoblar JSON (media bundan mustasno). Xatolar `{error, field?, code?, reference?}`. Admin javoblari `Cache-Control: no-store`.
 
+> `API_ORIGIN` o‘rnatilgan sayt (masalan Vercel) bu yo‘llarni o‘zgartirmasdan doimiy API serverga uzatadi. Brauzer uchun manzil baribir `/api/...` bo‘lib qoladi; cookie, multipart yuklash va `Origin` tekshiruvi saqlanadi. Proksi rejimida `/api/health` `{"ok":true,"mode":"proxy","storage":"remote-json-files","upstream":"https://api..."}` qaytaradi, API server javob bermasa `503`. Batafsil: [Deployment](DEPLOYMENT.md#vercel-ui--doimiy-api-server).
+
 ## Public
 
 | Method | Path                    | Vazifa                                           |

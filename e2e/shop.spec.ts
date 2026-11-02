@@ -41,6 +41,28 @@ test('home, 22 categories, catalog search, filters, pagination and detail units'
   await page.goto('/catalog?q=not-a-real-product-xyz');
   await expect(page.getByRole('heading', { name: 'Mos mahsulot topilmadi' })).toBeVisible();
 });
+test('quantity box keeps any number typed for kg products', async ({ page }) => {
+  await page.goto('/product/armatura-sample');
+  const box = page.locator('.quantity-control input');
+  await expect(box).toHaveValue('500');
+  await box.fill('');
+  await box.type('1250', { delay: 40 });
+  await expect(box).toHaveValue('1250');
+  await expect(page.locator('.line-total strong')).toContainText('14 750 000');
+  await box.blur();
+  await expect(box).toHaveValue('1250');
+  await page.getByRole('button', { name: 'Savatga', exact: true }).click();
+  await page.getByRole('button', { name: /^Savat \(/ }).click();
+  await expect(page.locator('.cart-line .quantity-input')).toHaveValue('1250');
+  // A number outside the allowed range is reported, not silently rewritten.
+  await page.goto('/product/armatura-sample');
+  await page.locator('.quantity-control input').fill('120');
+  await expect(page.locator('.quantity-hint')).toContainText('500');
+  await expect(page.locator('.quantity-control input')).toHaveValue('120');
+  await page.getByRole('button', { name: 'Savatga', exact: true }).click();
+  await expect(page.locator('.toast, [role="status"]').first()).toBeVisible();
+});
+
 test('guest checkout has only name and phone, persists receipt and prevents duplicate submit', async ({
   page,
 }) => {

@@ -13,7 +13,14 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/client';
 import { availability, effectivePrice, localized, type Product } from '@/lib/types';
-import { groupNumber, money, unitLabel } from '@/lib/money';
+import {
+  groupNumber,
+  money,
+  normalizeQuantity,
+  parseQuantity,
+  quantityIssue,
+  unitLabel,
+} from '@/lib/money';
 import type { TranslationKey } from '@/lib/i18n';
 import { Empty, ErrorState, Loading } from './ui';
 export function ProductDetail({
@@ -46,6 +53,7 @@ export function ProductDetail({
   const [data, setData] = useState<{ product: Product; related: Product[] } | null>(null),
     [error, setError] = useState(''),
     [quantity, setQuantity] = useState(1),
+    [qtyText, setQtyText] = useState('1'),
     [activeImage, setActiveImage] = useState(0),
     [tab, setTab] = useState('description');
   useEffect(() => {
@@ -59,6 +67,7 @@ export function ProductDetail({
         if (active) {
           setData(result);
           setQuantity(result.product.minOrder);
+          setQtyText(String(result.product.minOrder));
         }
       })
       .catch((e) => {
@@ -79,13 +88,34 @@ export function ProductDetail({
     stock = availability(p),
     unit = unitLabel(p.unit, lang);
   const measurements = Object.entries(p.measurements).filter(([, value]) => value !== undefined);
-  const changeQuantity = (value: number) =>
-    setQuantity(
-      Math.min(
-        p.stock || p.minOrder,
-        Math.max(p.minOrder, Number.isFinite(value) ? value : p.minOrder),
-      ),
-    );
+  const typedQuantity = parseQuantity(qtyText),
+    issue = quantityIssue(typedQuantity, p.minOrder, p.stock, p.step),
+    // The typed number is what the customer sees in the total, even before it is valid.
+    previewQuantity = Number.isFinite(typedQuantity) ? typedQuantity : quantity,
+    rangeText = `${groupNumber(p.minOrder)}–${groupNumber(p.stock)} ${unit}`,
+    stepBy = (direction: 1 | -1) => {
+      const base = Number.isFinite(typedQuantity) ? typedQuantity : quantity;
+      const next = normalizeQuantity(base + direction * p.step, p.minOrder, p.stock, p.step);
+      setQuantity(next);
+      setQtyText(String(next));
+    },
+    commitDraft = () => {
+      // Never rewrite a number the customer typed: only fall back when the box is unusable.
+      if (Number.isFinite(typedQuantity) && typedQuantity > 0) setQuantity(typedQuantity);
+      else setQtyText(String(quantity));
+    },
+    addToCart = (buy?: boolean) => {
+      if (issue === 'empty') return notify(t('quantityNeeded'));
+      if (issue === 'min' || issue === 'max') return notify(`${t('quantityRange')} ${rangeText}`);
+      const value =
+        issue === 'step'
+          ? normalizeQuantity(typedQuantity, p.minOrder, p.stock, p.step)
+          : typedQuantity;
+      if (issue === 'step') notify(`${t('quantityStep')} ${groupNumber(p.step)} ${unit}`);
+      setQuantity(value);
+      setQtyText(String(value));
+      onAdd(p, value, buy);
+    };
   const share = async () => {
     const url = `${websiteOrigin || window.location.origin}/product/${encodeURIComponent(p.id)}`;
     try {
@@ -166,53 +196,58 @@ export function ProductDetail({
               </label>
               <div className="quantity-control">
                 <button
-                  onClick={() => changeQuantity(quantity - p.step)}
+                  onClick={() => stepBy(-1)}
                   disabled={quantity <= p.minOrder}
                   aria-label={t('previous')}
                 >
                   <Minus size={17} />
                 </button>
                 <input
-                  type="number"
-                  min={p.minOrder}
-                  max={p.stock}
-                  step={p.step}
-                  value={quantity}
-                  onChange={(e) => changeQuantity(Number(e.target.value))}
-                  onBlur={() =>
-                    setQuantity(
-                      Math.min(
-                        p.stock,
-                        Number(
-                          (
-                            p.minOrder +
-                            Math.round((quantity - p.minOrder) / p.step) * p.step
-                          ).toFixed(6),
-                        ),
-                      ),
-                    )
-                  }
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={qtyText}
+                  onChange={(e) => setQtyText(e.target.value)}
+                  onBlur={commitDraft}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      commitDraft();
+                    }
+                  }}
                   aria-label={t('quantity')}
+                  aria-invalid={issue !== null}
                 />
                 <button
-                  onClick={() => changeQuantity(quantity + p.step)}
+                  onClick={() => stepBy(1)}
                   disabled={quantity >= p.stock}
                   aria-label={t('next')}
                 >
                   <Plus size={17} />
                 </button>
               </div>
+              {issue && (
+                <p className="quantity-hint">
+                  {issue === 'step'
+                    ? `${t('quantityStep')} ${groupNumber(p.step)} ${unit}`
+                    : `${t('minOrder')}: ${groupNumber(p.minOrder)} ${unit} · ${t('stock')}: ${groupNumber(p.stock)} ${unit}`}
+                </p>
+              )}
             </div>
             <div className="line-total">
               <span>{t('total')}</span>
-              <strong>{money(Math.round(effectivePrice(p) * quantity), lang)}</strong>
+              <strong>
+                {Number.isFinite(typedQuantity)
+                  ? money(Math.round(effectivePrice(p) * previewQuantity), lang)
+                  : '—'}
+              </strong>
             </div>
           </div>
           <div className="detail-buy">
             <button
               className="button secondary"
               disabled={['out', 'disabled'].includes(stock)}
-              onClick={() => onAdd(p, quantity)}
+              onClick={() => addToCart()}
             >
               <ShoppingCart size={19} />
               {t('addCart')}
@@ -220,7 +255,7 @@ export function ProductDetail({
             <button
               className="button primary"
               disabled={['out', 'disabled'].includes(stock)}
-              onClick={() => onAdd(p, quantity, true)}
+              onClick={() => addToCart(true)}
             >
               {t('buyNow')}
             </button>

@@ -32,7 +32,15 @@ import {
 } from 'lucide-react';
 import { createClient, readLocal, validCart, validReceipts, writeLocal } from '@/lib/client';
 import { translate, type TranslationKey } from '@/lib/i18n';
-import { groupNumber, money, unitLabel, formatPhone, formatDate } from '@/lib/money';
+import {
+  groupNumber,
+  money,
+  unitLabel,
+  formatPhone,
+  formatDate,
+  parseQuantity,
+  quantityIssue,
+} from '@/lib/money';
 import {
   availability,
   effectivePrice,
@@ -112,6 +120,7 @@ export function StoreApp({
     [quoteError, setQuoteError] = useState(''),
     [coupon, setCoupon] = useState(''),
     [couponInput, setCouponInput] = useState(''),
+    [qtyDrafts, setQtyDrafts] = useState<Record<string, string>>({}),
     [quoteLoading, setQuoteLoading] = useState(false);
   const [checkoutName, setCheckoutName] = useState(''),
     [checkoutPhone, setCheckoutPhone] = useState(''),
@@ -135,6 +144,38 @@ export function StoreApp({
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(''), 3000);
   }, []);
+  const clearDraft = (productId: string) =>
+    setQtyDrafts((drafts) => {
+      if (!(productId in drafts)) return drafts;
+      const next = { ...drafts };
+      delete next[productId];
+      return next;
+    });
+  /** Cart quantities are typed freely and only validated once the field is committed. */
+  const commitCartQuantity = (line: CartLine, product?: Product) => {
+    const raw = qtyDrafts[line.productId];
+    if (raw === undefined) return;
+    const value = parseQuantity(raw),
+      min = product?.minOrder || 1,
+      max = product?.stock || Number.MAX_SAFE_INTEGER,
+      step = product?.step || 1,
+      issue = quantityIssue(value, min, max, step);
+    if (issue) {
+      notify(
+        issue === 'empty'
+          ? t('quantityNeeded')
+          : issue === 'step'
+            ? `${t('quantityStep')} ${groupNumber(step)}`
+            : `${t('quantityRange')} ${groupNumber(min)}–${groupNumber(max)}`,
+      );
+      clearDraft(line.productId);
+      return;
+    }
+    setCart((items) =>
+      items.map((x) => (x.productId === line.productId ? { ...x, quantity: value } : x)),
+    );
+    clearDraft(line.productId);
+  };
   const navigate = useCallback(
     (next: string) => {
       const normalized = next.startsWith('/') ? next : '/' + next;
@@ -1405,6 +1446,7 @@ export function StoreApp({
                                 const next = Number(
                                   (line.quantity - (product?.step || 1)).toFixed(6),
                                 );
+                                clearDraft(line.productId);
                                 setCart((items) =>
                                   items.map((x) =>
                                     x.productId === line.productId
@@ -1416,7 +1458,27 @@ export function StoreApp({
                             >
                               <Minus size={14} />
                             </button>
-                            <span>{groupNumber(line.quantity)}</span>
+                            <input
+                              className="quantity-input"
+                              type="text"
+                              inputMode="decimal"
+                              autoComplete="off"
+                              aria-label={`${t('quantity')}: ${quoted?.name || product?.name.uz || ''}`}
+                              value={qtyDrafts[line.productId] ?? String(line.quantity)}
+                              onChange={(e) =>
+                                setQtyDrafts((drafts) => ({
+                                  ...drafts,
+                                  [line.productId]: e.target.value,
+                                }))
+                              }
+                              onBlur={() => commitCartQuantity(line, product)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  commitCartQuantity(line, product);
+                                }
+                              }}
+                            />
                             <button
                               aria-label={t('next')}
                               disabled={
@@ -1424,7 +1486,8 @@ export function StoreApp({
                                 !product ||
                                 line.quantity + product.step > product.stock
                               }
-                              onClick={() =>
+                              onClick={() => {
+                                clearDraft(line.productId);
                                 setCart((items) =>
                                   items.map((x) =>
                                     x.productId === line.productId
@@ -1436,8 +1499,8 @@ export function StoreApp({
                                         }
                                       : x,
                                   ),
-                                )
-                              }
+                                );
+                              }}
                             >
                               <Plus size={14} />
                             </button>

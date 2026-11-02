@@ -32,7 +32,7 @@ const globalStore = globalThis as unknown as {
 export function dataRoot() {
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY)
     throw new StorageError(
-      'Bu serverda JSON fayllar doimiy saqlanmaydi. Doimiy diskli backend serverga ulang. DATA_DIR doimiy diskka joylashtirilishi shart.',
+      'Bu hostingda doimiy disk yo‘q, shuning uchun JSON buyurtmalar saqlanmaydi. Ma’lumotni doimiy diskli API serverda saqlang va shu ilovaga API_ORIGIN ni o‘rnating (docs/DEPLOYMENT.md), yoki butun ilovani doimiy diskli serverga ko‘chiring.',
       'PERSISTENT_DISK_REQUIRED',
     );
   const root = path.resolve(
