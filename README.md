@@ -22,7 +22,12 @@ Bitta kompaniya uchun metall prokati va qurilish materiallari do‘koni. Mijoz h
 
 ## Muhim: qayerda ishlaydi?
 
-**Vercel, Netlify Functions va AWS Lambda uchun emas.** Ularning serverless fayl tizimi doimiy emas. Yangi instance, qayta deploy yoki sovuq start JSON buyurtmalarni yo‘qotishi mumkin. Shuning uchun backend bu muhitlarda `PERSISTENT_DISK_REQUIRED` bilan ataylab ishlashni rad etadi. Vercel’ga faqat statik reklama sahifasini joylash mumkin; buyurtma backend’i emas.
+**Ma’lumot doimiy diskda turishi shart.** Vercel, Netlify Functions va AWS Lambda diski vaqtinchalik: yangi instance, qayta deploy yoki sovuq start JSON buyurtmalarni yo‘qotadi. Shu sababli backend bu muhitlarda `PERSISTENT_DISK_REQUIRED` bilan ataylab ishlashni rad etadi.
+
+Ikki yo‘l bor:
+
+- **Tavsiya:** butun ilovani Docker/Caddy bilan doimiy diskli VPS’ga qo‘yish.
+- **Vercel’da faqat UI:** doimiy API serverni alohida ko‘tarib, Vercel’da `API_ORIGIN` o‘rnatish. Sayt `/api/*` so‘rovlarini o‘sha serverga uzatadi va o‘zi hech narsa saqlamaydi. Batafsil: [Deployment](docs/DEPLOYMENT.md#vercel-ui--doimiy-api-server).
 
 Docker volume yoki VPS diskida ishlatish uchun mo‘ljallangan. Hosting provayderi diskning doimiyligini kafolatlashi shart. `DATA_DIR` oddiy konteyner ichida emas, mounted volume ichida bo‘lsin. Bir vaqtda **bitta backend instance** ishlating. JSON ombori kichik/o‘rta do‘kon uchun; yuq yuk yoki ko‘p serverli arxitektura uchun mos emas.
 

@@ -22,7 +22,7 @@ Unit/integration testlar vaqtinchalik `DATA_DIR` ishlatadi, asosiy ma’lumotlar
 - Receipt token, admin scrypt/session/origin/rate limit, two-field checkout.
 - Uzbek Telegram, repeated flush, timeout uncertainty, 429 backoff, crash while sending.
 
-E2E alohida production server va vaqtinchalik diskda ishlaydi: homepage/catalog/detail, guest checkout/receipt, favorites/compare/theme/language, admin login/order status/cancel, product/category/coupon CRUD, real PNG→WebP upload, support, SEO/404, mobile overflow, unauthorized API/price tampering.
+E2E alohida production server va vaqtinchalik diskda ishlaydi: homepage/catalog/detail, kg maydoniga erkin raqam kiritish (`500` minimumli mahsulotga `1250`), guest checkout/receipt, favorites/compare/theme/language, admin login/order status/cancel, product/category/coupon CRUD, real PNG→WebP upload, support, SEO/404, mobile overflow, unauthorized API/price tampering.
 
 Chromium `@sparticuz/chromium` orqali npm dan keladi. CI Ubuntu’da kerakli Linux library lar bilan ishlaydi. Boshqa muhitda `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` berish mumkin.
 

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { StoreApp } from '@/components/store-app';
-import { readStore } from '@/lib/server/storage';
+import { loadCategories, loadProduct, trySettings } from '@/lib/server/data-source';
+import { SetupNotice } from '@/components/setup-notice';
 import { effectivePrice } from '@/lib/types';
 export const dynamic = 'force-dynamic';
 type Props = {
@@ -26,16 +27,12 @@ const titles: Record<string, string> = {
 const privatePages = ['checkout', 'orders', 'favorites', 'compare', 'recent'];
 async function productFor(slug: string[]) {
   if (slug[0] !== 'product' || !slug[1]) return null;
-  const [products, categories] = await Promise.all([
-    readStore('products'),
-    readStore('categories'),
-  ]);
-  return (
-    products.find(
-      (p) =>
-        p.id === slug[1] && p.enabled && categories.some((c) => c.id === p.categoryId && c.enabled),
-    ) || null
-  );
+  const [product, categories] = await Promise.all([loadProduct(slug[1]), loadCategories()]);
+  return product &&
+    product.enabled &&
+    categories.some((c) => c.id === product.categoryId && c.enabled)
+    ? product
+    : null;
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -63,6 +60,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function StorePage({ params, searchParams }: Props) {
   const { slug } = await params;
   const query = await searchParams;
+  const settings = await trySettings();
+  if (!settings) return <SetupNotice missing="api-origin" />;
   if (slug.length !== 1 && !(slug.length === 2 && slug[0] === 'product')) notFound();
   if (slug.length === 1 && !titles[slug[0]]) notFound();
   const product = await productFor(slug);
@@ -70,7 +69,6 @@ export default async function StorePage({ params, searchParams }: Props) {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(query))
     if (typeof value === 'string') search.set(key, value);
-  const settings = await readStore('settings');
   const base = settings.websiteUrl || process.env.PUBLIC_WEB_ORIGIN?.split(',')[0]?.trim();
   const jsonLd = product
     ? {

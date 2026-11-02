@@ -10,9 +10,58 @@ Android WebView → o‘sha /api/* → o‘sha DATA_DIR
 
 Mobil ilova alohida statik frontend, alohida ma’lumotlar ombori emas. Ikkala mijoz ham bitta API, narx va buyurtmalardan foydalanadi. Server JSON fayllarini brauzerga to‘g‘ridan-to‘g‘ri bermaydi.
 
-## Vercel nima uchun emas?
+## Vercel, Netlify, Lambda: ma’lumot qayerda turadi?
 
-Vercel serverless funksiya diski vaqtinchalik. Instance almashsa, redeploy yoki cold start bo‘lsa, yozilgan JSON fayl yo‘qolishi mumkin. Bir nechta funksiya bir faylni ulashmaydi. Shu sababli bu backend Vercel/Lambda/Netlify muhitini aniqlasa, ishlashni rad etadi. Bu xatoni chetlab o‘tmang va `/tmp` ni doimiy disk deb hisoblamang.
+Vercel serverless funksiya diski vaqtinchalik. Instance almashsa, redeploy yoki cold start bo‘lsa, yozilgan JSON fayl yo‘qolishi mumkin. Bir nechta funksiya bir faylni ulashmaydi. Shu sababli backend Vercel/Lambda/Netlify muhitini aniqlasa, JSON omborini ochishni rad etadi (`PERSISTENT_DISK_REQUIRED`). Bu xatoni chetlab o‘tmang va `/tmp` ni doimiy disk deb hisoblamang.
+
+Ikki to‘g‘ri yechim bor:
+
+1. **Butun ilovani doimiy diskli serverga qo‘yish** (quyidagi Docker/Caddy yoki systemd bo‘limi). Eng sodda va tavsiya etiladi.
+2. **Vercel’da faqat ko‘rinish (UI), ma’lumot esa doimiy API serverda.** Buning uchun Vercel loyihasida `API_ORIGIN` o‘rnatiladi. Sayt `/api/*` so‘rovlarini o‘sha serverga uzatadi; o‘zi hech qanday fayl saqlamaydi.
+
+## Vercel UI + doimiy API server
+
+```text
+Brauzer → Vercel (Next.js sahifalar, /api/* proksisi) → API_ORIGIN/api/* → DATA_DIR
+                                                        └→ Telegram Bot API
+```
+
+**1-qadam — API server.** Yuqoridagi Docker + Caddy bo‘limi bo‘yicha `https://api.mening-dokonim.uz` manzilida backend’ni ishga tushiring. `DATA_DIR` mounted volume bo‘lsin, `PUBLIC_WEB_ORIGIN` ichiga Vercel manzilini ham yozing (vergul bilan bir nechta origin mumkin):
+
+```bash
+PUBLIC_WEB_ORIGIN=https://ischi.vercel.app
+```
+
+Admin panel ham shu sayt orqali ishlaydi, shuning uchun Vercel origin’i ro‘yxatda bo‘lishi shart.
+
+**2-qadam — Vercel loyihasi.** Environment Variables:
+
+| Nomi                | Qiymat                          | Izoh                                                                              |
+| ------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| `API_ORIGIN`        | `https://api.mening-dokonim.uz` | Faqat origin, oxirida `/` yoki `/api` bo‘lmasin. `http://` faqat localhost uchun. |
+| `PUBLIC_WEB_ORIGIN` | `https://ischi.vercel.app`      | Canonical va sitemap uchun.                                                       |
+
+`DATA_DIR`, `ADMIN_*`, `TELEGRAM_*` Vercel’ga qo‘yilmaydi: ular API serverda qoladi. Vercel’da `API_ORIGIN` bo‘sh bo‘lsa, sayt avvalgidek lokal JSON omborini ochishga urinadi va `PERSISTENT_DISK_REQUIRED` xatosini beradi.
+
+**3-qadam — tekshirish.** `https://ischi.vercel.app/api/health` quyidagicha javob berishi kerak:
+
+```json
+{
+  "ok": true,
+  "mode": "proxy",
+  "storage": "remote-json-files",
+  "upstream": "https://api.mening-dokonim.uz"
+}
+```
+
+`ok: false` va `503` — API server javob bermayapti yoki `API_ORIGIN` xato.
+
+Proksisining cheklovlari:
+
+- Vercel funksiyasiga kiruvchi so‘rov tanasi ~4,5 MB bilan cheklangan. Katta rasm yuklash uchun admin panelni API server domeni orqali oching yoki rasmni oldindan kichraytiring (`sharp` baribir WebP’ga aylantiradi).
+- Vercel funksiyasi 60 soniyada tugashi kerak (`maxDuration` shu qiymatda).
+- Yozuvlar bitta API instance’da ketadi; `DATA_DIR` bitta serverda bo‘lsin.
+- Ikkala domen ham HTTPS bo‘lishi shart. Cookie `ischi_admin` birinchi tomon cookie bo‘lib qoladi, chunki brauzer faqat Vercel bilan gaplashadi.
 
 VPS, doimiy diskli VM yoki persistent volume kafolatlangan konteyner hostingidan foydalaning. Provider panelida volume redeploy/restartdan keyin saqlanishini tekshiring. Faqat `docker run` ichidagi faylga tayanmang.
 

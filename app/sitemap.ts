@@ -1,8 +1,10 @@
 import type { MetadataRoute } from 'next';
-import { readStore } from '@/lib/server/storage';
+import { loadAllProducts, trySettings } from '@/lib/server/data-source';
 export const dynamic = 'force-dynamic';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [settings, products] = await Promise.all([readStore('settings'), readStore('products')]);
+  const settings = await trySettings();
+  if (!settings) return [];
+  const products = await loadAllProducts();
   const base = settings.websiteUrl || process.env.PUBLIC_WEB_ORIGIN?.split(',')[0]?.trim();
   if (!base) return [];
   const paths = [
