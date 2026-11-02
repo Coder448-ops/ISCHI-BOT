@@ -544,6 +544,40 @@ svg {
   padding: 1px 4px;
   border-radius: 3px;
 }
+.demo-notice.showcase-notice {
+  background: #202724;
+  color: #f4d3bd;
+}
+.demo-notice.showcase-notice > span {
+  border-color: var(--accent);
+  color: #ffb98d;
+}
+.read-only-card {
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.read-only-card > svg {
+  color: var(--accent);
+}
+.read-only-card h2 {
+  margin: 14px 0 10px;
+  font-family: 'Manrope Variable', sans-serif;
+  font-size: 21px;
+}
+.read-only-card p {
+  margin: 0 0 18px;
+  max-width: 52ch;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.read-only-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .industrial-hero {
   position: relative;
   background: #202724;

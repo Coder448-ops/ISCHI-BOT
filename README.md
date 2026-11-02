@@ -28,6 +28,7 @@ Ikki yo‘l bor:
 
 - **Tavsiya:** butun ilovani Docker/Caddy bilan doimiy diskli VPS’ga qo‘yish.
 - **Vercel’da faqat UI:** doimiy API serverni alohida ko‘tarib, Vercel’da `API_ORIGIN` o‘rnatish. Sayt `/api/*` so‘rovlarini o‘sha serverga uzatadi va o‘zi hech narsa saqlamaydi. Batafsil: [Deployment](docs/DEPLOYMENT.md#vercel-ui--doimiy-api-server).
+- **Ko‘rgazma rejimi:** Vercel’da `API_ORIGIN` hali yo‘q bo‘lsa, sayt `seeds/` kontentini faqat o‘qish uchun ko‘rsatadi (katalog, qidiruv, savat summasi). Buyurtma va admin ataylab o‘chirilgan, sahifada o‘zbekcha ogohlantirish chiqadi. Batafsil: [Deployment](docs/DEPLOYMENT.md#ko‘rgazma-rejimi-api_origin-berilmagan-serverless-hosting).
 
 Docker volume yoki VPS diskida ishlatish uchun mo‘ljallangan. Hosting provayderi diskning doimiyligini kafolatlashi shart. `DATA_DIR` oddiy konteyner ichida emas, mounted volume ichida bo‘lsin. Bir vaqtda **bitta backend instance** ishlating. JSON ombori kichik/o‘rta do‘kon uchun; yuq yuk yoki ko‘p serverli arxitektura uchun mos emas.
 

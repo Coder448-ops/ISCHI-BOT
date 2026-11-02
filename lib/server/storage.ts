@@ -280,6 +280,31 @@ export async function withStore<T>(
   globalStore.ischiQueue = queued.catch(() => undefined);
   return queued;
 }
+const showcaseStore = globalThis as unknown as { ischiSeedData?: Promise<StoreData> };
+/**
+ * Read-only content taken straight from seeds/ (never written, never locked).
+ * Used by "ko‘rgazma" mode on hosts without a durable disk, so the shop can be browsed
+ * and evaluated while orders stay switched off.
+ */
+export function seedStore(): Promise<StoreData> {
+  showcaseStore.ischiSeedData ??= (async () => {
+    const data = {} as Record<StoreName, unknown>;
+    for (const name of names) {
+      const seed = (await readJson(path.resolve('seeds', `${name}.json`))) as
+        { data?: unknown } | undefined;
+      if (!seed || seed.data === undefined)
+        throw new StorageError(`Ko‘rgazma ma’lumoti topilmadi: ${name}.`, 'SEED_MISSING');
+      data[name] = validate(name, seed.data);
+    }
+    const store = data as unknown as StoreData;
+    validateRelations(store);
+    return store;
+  })().catch((error) => {
+    showcaseStore.ischiSeedData = undefined;
+    throw error;
+  });
+  return showcaseStore.ischiSeedData;
+}
 export async function readStore<K extends StoreName>(name: K): Promise<StoreData[K]> {
   return withStore((data) => structuredClone(data[name]));
 }

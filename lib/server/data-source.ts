@@ -1,8 +1,8 @@
 import { cache } from 'react';
 import type { Bootstrap, Category, Product, Settings } from '../types';
-import { getBootstrap } from './commerce';
+import { buildBootstrap, getBootstrap } from './commerce';
 import { getSession, SESSION_COOKIE } from './security';
-import { readStore } from './storage';
+import { readStore, seedStore } from './storage';
 
 /**
  * Server-side data access with two modes:
@@ -34,6 +34,16 @@ export function apiOrigin(): string | null {
 }
 export function remoteMode() {
   return Boolean((process.env.API_ORIGIN || '').trim());
+}
+export function serverlessHost() {
+  return Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+}
+/**
+ * Ko‘rgazma (showcase) rejimi: hostingda doimiy disk yo‘q va API_ORIGIN berilmagan.
+ * Kontent seeds/ dan faqat o‘qish uchun ko‘rsatiladi, buyurtma qabul qilinmaydi.
+ */
+export function showcaseMode() {
+  return !remoteMode() && serverlessHost();
 }
 async function remote<T>(path: string, options: { cookie?: string } = {}): Promise<T> {
   const origin = apiOrigin();
@@ -72,29 +82,31 @@ export type DataSourceIssue = 'api-origin' | 'upstream' | 'storage';
 export function dataSourceIssue(): DataSourceIssue {
   if (remoteMode()) return apiOrigin() ? 'upstream' : 'api-origin';
   // A serverless host has no durable disk, so the fix is API_ORIGIN, not a local path.
-  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY)
-    return 'api-origin';
+  if (serverlessHost()) return 'api-origin';
   return 'storage';
 }
-export const loadSettings = cache(async (): Promise<Settings> =>
-  remoteMode()
-    ? (await remote<{ settings: Settings }>('/bootstrap')).settings
-    : readStore('settings'),
-);
-export const loadBootstrap = cache(async (): Promise<Bootstrap> =>
-  remoteMode() ? remote<Bootstrap>('/bootstrap') : getBootstrap(),
-);
+export const loadSettings = cache(async (): Promise<Settings> => {
+  if (remoteMode()) return (await remote<{ settings: Settings }>('/bootstrap')).settings;
+  if (showcaseMode()) return (await seedStore()).settings;
+  return readStore('settings');
+});
+export const loadBootstrap = cache(async (): Promise<Bootstrap> => {
+  if (remoteMode()) return remote<Bootstrap>('/bootstrap');
+  if (showcaseMode()) return buildBootstrap(await seedStore(), { readOnly: true });
+  return getBootstrap();
+});
 export const loadCategories = cache(async (): Promise<Category[]> => {
   try {
-    return remoteMode()
-      ? (await remote<{ categories: Category[] }>('/bootstrap')).categories
-      : await readStore('categories');
+    if (remoteMode()) return (await remote<{ categories: Category[] }>('/bootstrap')).categories;
+    if (showcaseMode()) return (await seedStore()).categories;
+    return await readStore('categories');
   } catch {
     return [];
   }
 });
 /** Every enabled product, across all API pages (the catalog caps a page at 48 items). */
 export const loadAllProducts = cache(async (): Promise<Product[]> => {
+  if (showcaseMode()) return (await seedStore()).products;
   if (!remoteMode()) return readStore('products');
   const products: Product[] = [];
   for (let page = 1; page <= 100; page++) {
@@ -107,6 +119,7 @@ export const loadAllProducts = cache(async (): Promise<Product[]> => {
   return products;
 });
 export const loadProduct = cache(async (id: string): Promise<Product | null> => {
+  if (showcaseMode()) return (await seedStore()).products.find((p) => p.id === id) || null;
   if (!remoteMode()) {
     try {
       return (await readStore('products')).find((p) => p.id === id) || null;
@@ -122,7 +135,7 @@ export const loadProduct = cache(async (id: string): Promise<Product | null> => 
 });
 /** Validates an administrator session cookie, locally or against the API server. */
 export async function loadAdminSession(token?: string) {
-  if (!token) return null;
+  if (!token || showcaseMode()) return null;
   if (!remoteMode()) return getSession(token);
   try {
     return await remote<{ username: string }>('/admin/session', {

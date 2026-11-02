@@ -152,6 +152,14 @@ const uz = {
   menu: 'Menyu',
   close: 'Yopish',
   demoNotice: 'Namoyish katalogi: mahsulotlar, rasmlar va narxlar namunaviy.',
+  showcase: 'KO‘RGAZMA',
+  showcaseBanner: 'Ko‘rgazma rejimi: katalog to‘liq ko‘rinadi, lekin buyurtmalar qabul qilinmaydi.',
+  showcaseTitle: 'Buyurtmalar vaqtincha qabul qilinmaydi',
+  showcaseText:
+    'Bu sahifa ko‘rgazma nusxasi: mahsulotlar va narxlar haqiqiy, lekin buyurtmani saqlaydigan server hali ulanmagan. Buyurtma uchun qo‘ng‘iroq qiling yoki WhatsApp orqali yozing — operator yordam beradi.',
+  showcaseAdmin: 'Administrator paneli ko‘rgazma nusxasida ishlamaydi.',
+  showcaseNoContact:
+    'Aloqa raqami hali kiritilmagan. Administrator uni sozlamalarda qo‘shgandan so‘ng shu yerda ko‘rinadi.',
   copyright: 'Barcha huquqlar himoyalangan.',
   notFound: 'Sahifa topilmadi',
   notFoundText: 'Manzil o‘zgargan yoki sahifa mavjud emas.',
@@ -323,6 +331,14 @@ const ru: Record<keyof typeof uz, string> = {
   menu: 'Меню',
   close: 'Закрыть',
   demoNotice: 'Демонстрационный каталог: товары, изображения и цены — примеры.',
+  showcase: 'ВИТРИНА',
+  showcaseBanner: 'Режим витрины: каталог доступен полностью, но заказы не принимаются.',
+  showcaseTitle: 'Заказы временно не принимаются',
+  showcaseText:
+    'Это демонстрационная версия: товары и цены настоящие, но сервер, сохраняющий заказы, ещё не подключён. Для заказа позвоните или напишите в WhatsApp — оператор поможет.',
+  showcaseAdmin: 'Панель администратора недоступна в демонстрационной версии.',
+  showcaseNoContact:
+    'Контактный номер пока не указан. Он появится здесь после настройки администратором.',
   copyright: 'Все права защищены.',
   notFound: 'Страница не найдена',
   notFoundText: 'Адрес изменился или страница не существует.',
@@ -493,6 +509,14 @@ const en: Record<keyof typeof uz, string> = {
   menu: 'Menu',
   close: 'Close',
   demoNotice: 'Demo catalog: products, images and prices are illustrative samples.',
+  showcase: 'SHOWCASE',
+  showcaseBanner: 'Showcase mode: the catalog is fully visible, but orders are not accepted.',
+  showcaseTitle: 'Orders are temporarily unavailable',
+  showcaseText:
+    'This is a showcase build: products and prices are real, but the server that stores orders is not connected yet. To order, call or message us on WhatsApp and an operator will help.',
+  showcaseAdmin: 'The admin panel is unavailable in the showcase build.',
+  showcaseNoContact:
+    'No contact number is configured yet. It will appear here once the administrator adds it.',
   copyright: 'All rights reserved.',
   notFound: 'Page not found',
   notFoundText: 'The address may have changed or this page does not exist.',

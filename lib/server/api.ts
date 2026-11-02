@@ -22,6 +22,7 @@ import {
   readStore,
   restoreBackup,
   safeStorageError,
+  seedStore,
   StorageError,
   withStore,
 } from './storage';
@@ -38,6 +39,7 @@ import {
 } from './security';
 import {
   adminOverview,
+  buildBootstrap,
   calculateQuote,
   changeOrderStatus,
   createOrder,
@@ -47,6 +49,7 @@ import {
   queryCatalog,
   type CatalogQuery,
 } from './commerce';
+import { showcaseMode } from './data-source';
 import { flushNotifications, notificationSummary } from './notifications';
 import { telegramConfig, verifyTelegram } from './telegram';
 
@@ -459,6 +462,73 @@ async function adminApi(request: NextRequest, parts: string[]) {
   }
   throw new ApiError(404, 'API manzili topilmadi.');
 }
+const READ_ONLY_NOTICE =
+  'Bu ko‘rgazma nusxasi: buyurtma qabul qilish uchun sayt doimiy serverga ulanmagan. Iltimos, telefon yoki WhatsApp orqali bog‘laning.';
+/**
+ * Ko‘rgazma rejimi: hostingda doimiy disk yo‘q (masalan Vercel) va API_ORIGIN berilmagan.
+ * Faqat o‘qish uchun kontent seeds/ dan beriladi; hech narsa yozilmaydi.
+ */
+async function showcaseApi(request: NextRequest, parts: string[]) {
+  const method = request.method;
+  const [resource, id] = parts;
+  if (resource === 'admin')
+    throw new ApiError(403, 'Administrator paneli ko‘rgazma nusxasida ishlamaydi.');
+  if (resource === 'health' && method === 'GET')
+    return json(
+      {
+        ok: true,
+        mode: 'showcase',
+        storage: 'seeds-read-only',
+        readOnly: true,
+        persistence: 'none — buyurtmalar saqlanmaydi',
+        telegramConfigured: false,
+        adminConfigured: false,
+      },
+      200,
+      request,
+    );
+  if (resource === 'bootstrap' && method === 'GET')
+    return json(buildBootstrap(await seedStore(), { readOnly: true }), 200, request);
+  if (resource === 'products' && method === 'GET') {
+    const data = await seedStore();
+    if (id) {
+      const product = data.products.find(
+        (p) =>
+          p.id === id &&
+          p.enabled &&
+          data.categories.some((c) => c.id === p.categoryId && c.enabled),
+      );
+      if (!product) throw new ApiError(404, 'Mahsulot topilmadi.');
+      return json(
+        {
+          product,
+          related: data.products.filter((p) => product.relatedIds.includes(p.id) && p.enabled),
+        },
+        200,
+        request,
+      );
+    }
+    return json(
+      queryCatalog(data.products, data.categories, data.orders, catalogQuery(request)),
+      200,
+      request,
+    );
+  }
+  if (resource === 'quote' && method === 'POST') {
+    // Narx hisoblash faqat o‘qiydi, shuning uchun savat summasi ko‘rgazmada ham ishlaydi.
+    rateLimit(request, 'quote', 100);
+    const input = parse(
+      z
+        .object({ items: checkoutSchema.shape.items, couponCode: z.string().max(40).optional() })
+        .strict(),
+      await body(request),
+    );
+    return json(calculateQuote(await seedStore(), input.items, input.couponCode), 200, request);
+  }
+  if (method === 'GET' && (resource === 'media' || resource === 'orders'))
+    throw new ApiError(404, 'Ko‘rgazma nusxasida bu ma’lumot mavjud emas.');
+  return json({ error: READ_ONLY_NOTICE, code: 'READ_ONLY_DEMO' }, 503, request);
+}
 export async function handleApi(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
@@ -482,6 +552,7 @@ export async function handleApi(
       return response;
     }
     if (request.method !== 'GET') assertOrigin(request, admin);
+    if (showcaseMode()) return await showcaseApi(request, parts);
     if (admin) return await adminApi(request, parts.slice(1));
     const [resource, id] = parts;
     if (resource === 'health' && request.method === 'GET') {
