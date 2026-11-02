@@ -20,7 +20,12 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
+          // Framing is restricted to this site plus the hosted preview origins.
+          // Production Caddy replaces this with a self-only policy.
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://*.e2b.app https://*.arena.ai",
+          },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
