@@ -167,39 +167,41 @@ export function queryCatalog(
     materials: [...new Set(products.filter((p) => p.enabled).map((p) => p.materialType))].sort(),
   };
 }
+export function buildBootstrap(data: StoreData, options: { readOnly?: boolean } = {}): Bootstrap {
+  const products = data.products.filter(
+    (p) => p.enabled && data.categories.some((c) => c.id === p.categoryId && c.enabled),
+  );
+  const sales = new Map<string, number>();
+  for (const o of data.orders)
+    if (o.status !== 'Bekor qilindi')
+      for (const i of o.items) sales.set(i.productId, (sales.get(i.productId) || 0) + i.quantity);
+  const coupon = data.coupons.find(
+    (c) =>
+      c.enabled &&
+      (!c.expiresAt || Date.parse(c.expiresAt) > Date.now()) &&
+      (c.usageLimit === null || c.usedCount < c.usageLimit),
+  );
+  return {
+    settings: data.settings,
+    categories: data.categories.filter((c) => c.enabled).sort((a, b) => a.sort - b.sort),
+    home: {
+      popular: [...products].sort((a, b) => Number(b.featured) - Number(a.featured)).slice(0, 8),
+      bestsellers: [...products]
+        .filter((p) => sales.has(p.id))
+        .sort((a, b) => (sales.get(b.id) || 0) - (sales.get(a.id) || 0))
+        .slice(0, 8),
+      newest: [...products]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        .slice(0, 8),
+      discounts: products.filter((p) => p.discountPrice !== null).slice(0, 8),
+    },
+    couponOffer: coupon ? { code: coupon.code, type: coupon.type, value: coupon.value } : null,
+    demo: data.settings.demoCatalog,
+    readOnly: Boolean(options.readOnly),
+  };
+}
 export async function getBootstrap(): Promise<Bootstrap> {
-  return withStore((data) => {
-    const products = data.products.filter(
-      (p) => p.enabled && data.categories.some((c) => c.id === p.categoryId && c.enabled),
-    );
-    const sales = new Map<string, number>();
-    for (const o of data.orders)
-      if (o.status !== 'Bekor qilindi')
-        for (const i of o.items) sales.set(i.productId, (sales.get(i.productId) || 0) + i.quantity);
-    const coupon = data.coupons.find(
-      (c) =>
-        c.enabled &&
-        (!c.expiresAt || Date.parse(c.expiresAt) > Date.now()) &&
-        (c.usageLimit === null || c.usedCount < c.usageLimit),
-    );
-    return {
-      settings: data.settings,
-      categories: data.categories.filter((c) => c.enabled).sort((a, b) => a.sort - b.sort),
-      home: {
-        popular: [...products].sort((a, b) => Number(b.featured) - Number(a.featured)).slice(0, 8),
-        bestsellers: [...products]
-          .filter((p) => sales.has(p.id))
-          .sort((a, b) => (sales.get(b.id) || 0) - (sales.get(a.id) || 0))
-          .slice(0, 8),
-        newest: [...products]
-          .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-          .slice(0, 8),
-        discounts: products.filter((p) => p.discountPrice !== null).slice(0, 8),
-      },
-      couponOffer: coupon ? { code: coupon.code, type: coupon.type, value: coupon.value } : null,
-      demo: data.settings.demoCatalog,
-    };
-  });
+  return withStore((data) => buildBootstrap(data));
 }
 export async function createOrder(input: z.infer<typeof checkoutSchema>) {
   const name = input.customerName.trim().replace(/\s+/g, ' ');

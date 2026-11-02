@@ -1161,6 +1161,12 @@ export function StoreApp({
           ))}
         </div>
       )}
+      {bootstrap.readOnly && (
+        <div className="demo-notice showcase-notice">
+          <span>{t('showcase')}</span>
+          {t('showcaseBanner')}
+        </div>
+      )}
       {bootstrap.demo && (
         <div className="demo-notice">
           <span>DEMO</span>
@@ -1242,6 +1248,44 @@ export function StoreApp({
                 action={t('viewCatalog')}
                 onAction={() => navigate('/catalog')}
               />
+            ) : bootstrap.readOnly ? (
+              <div className="checkout-layout">
+                <div className="read-only-card" role="status">
+                  <ShieldCheck size={40} />
+                  <h2>{t('showcaseTitle')}</h2>
+                  <p>{t('showcaseText')}</p>
+                  <div className="read-only-actions">
+                    {bootstrap.settings.phones[0] && (
+                      <a className="button primary" href={'tel:' + bootstrap.settings.phones[0]}>
+                        <Phone size={18} />
+                        {bootstrap.settings.phones[0]}
+                      </a>
+                    )}
+                    {bootstrap.settings.whatsapp && (
+                      <a
+                        className="button secondary"
+                        href={`https://wa.me/${bootstrap.settings.whatsapp.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <MessageCircle size={18} />
+                        {t('whatsapp')}
+                      </a>
+                    )}
+                  </div>
+                  {!bootstrap.settings.phones.length && !bootstrap.settings.whatsapp && (
+                    <p className="muted read-only-contact">{t('showcaseNoContact')}</p>
+                  )}
+                </div>
+                <OrderSummary
+                  quote={quote}
+                  loading={quoteLoading}
+                  error={quoteError}
+                  lang={lang}
+                  t={t}
+                  image={client.image}
+                />
+              </div>
             ) : (
               <div className="checkout-layout">
                 <form className="checkout-form" onSubmit={submitOrder}>

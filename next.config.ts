@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: 'standalone',
   serverExternalPackages: ['sharp', 'proper-lockfile'],
+  // Ko‘rgazma rejimi seeds/*.json ni o‘qiydi, shuning uchun ular serverless bundle ichida bo‘lsin.
+  outputFileTracingIncludes: { '/*': ['./seeds/**/*'] },
   outputFileTracingExcludes: {
     '/*': [
       './data/**/*',

@@ -154,6 +154,8 @@ export type Bootstrap = {
   home: { popular: Product[]; bestsellers: Product[]; newest: Product[]; discounts: Product[] };
   couponOffer: null | { code: string; type: 'percent' | 'fixed'; value: number };
   demo: boolean;
+  /** Ko‘rgazma rejimi: content is shown, order placement is switched off. */
+  readOnly: boolean;
 };
 export type CartLine = { productId: string; quantity: number };
 export type Receipt = { id: string; number: string; token: string };

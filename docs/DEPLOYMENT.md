@@ -19,6 +19,18 @@ Ikki to‘g‘ri yechim bor:
 1. **Butun ilovani doimiy diskli serverga qo‘yish** (quyidagi Docker/Caddy yoki systemd bo‘limi). Eng sodda va tavsiya etiladi.
 2. **Vercel’da faqat ko‘rinish (UI), ma’lumot esa doimiy API serverda.** Buning uchun Vercel loyihasida `API_ORIGIN` o‘rnatiladi. Sayt `/api/*` so‘rovlarini o‘sha serverga uzatadi; o‘zi hech qanday fayl saqlamaydi.
 
+## Ko‘rgazma rejimi (API_ORIGIN berilmagan serverless hosting)
+
+Vercel/Netlify kabi doimiy disk yo‘q hostingda `API_ORIGIN` berilmagan bo‘lsa, sayt **o‘zi bilan kelgan `seeds/*.json` kontentini faqat o‘qish uchun** ko‘rsatadi:
+
+- homepage, 22 kategoriya, katalog (qidiruv, filtr, saralash, sahifalash), mahsulot sahifasi, galereya, UZ/RU/EN, tungi rejim, SEO — hammasi ishlaydi;
+- savat va summa hisob-kitobi ishlaydi (narx serverda, `seeds` bo‘yicha), lekin **buyurtma yuborilmaydi**: `/api/orders` `503 READ_ONLY_DEMO` qaytaradi va sahifada «Buyurtmalar vaqtincha qabul qilinmaydi» ogohlantirishi chiqadi;
+- `/admin` yopiq, `/api/admin/*` `403`;
+- yuqorida `KO‘RGAZMA` belgisi turadi, `/api/health` esa `{"ok":true,"mode":"showcase","storage":"seeds-read-only"}` qaytaradi;
+- hech qanday fayl yozilmaydi: `DATA_DIR` ochilmaydi, buyurtma yo‘qolmaydi (chunki qabul qilinmaydi).
+
+Bu rejim API server ulanganda avtomatik o‘chadi: `API_ORIGIN` qo‘yilishi bilan sayt proksi rejimiga o‘tadi va buyurtmalar qabul qilina boshlaydi. `seeds/` fayllari serverless bundle ichiga `outputFileTracingIncludes` orqali qo‘shiladi.
+
 ## Vercel UI + doimiy API server
 
 ```text
