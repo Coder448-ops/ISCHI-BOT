@@ -1,176 +1,119 @@
-# ISCHI — hisobsiz buyurtma tizimi
+# ISCHI Industrial
 
-O‘zbek tilidagi mobil moslashuvchan do‘kon, ikki maydonli mehmon checkouti, PostgreSQL buyurtmalar bazasi, Telegram bildirishnomalari va alohida himoyalangan administrator paneli.
+Bitta kompaniya uchun metall prokati va qurilish materiallari do‘koni. Mijoz hisobi yo‘q: xarid qilish uchun faqat **ism va familiya** hamda **telefon raqami** yetarli. Administrator paneli alohida himoyalangan.
 
-**Mijozlar uchun ro‘yxatdan o‘tish, kirish, parol, email yoki mijoz hisobi yo‘q.** `/admin/login` faqat administrator uchun.
+**Ma’lumotlar bazasi ishlatilmaydi.** Barcha katalog, buyurtma, kupon, sozlama va bildirishnomalar serverdagi JSON fayllarda saqlanadi. Sayt va Android ilova bitta backend API dan foydalanadi.
 
-## Muhim: Vercel uchun PostgreSQL
+> Bu demo katalog bilan keladi: 22 kategoriya, 22 namoyish mahsuloti, namunaviy narxlar va AI bilan yaratilgan mahsulot rasmlari. Kompaniya telefoni, manzili va mijoz fikrlari to‘qib chiqarilmagan. Ishga tushirishdan oldin administrator haqiqiy ma’lumotlarni kiritadi.
 
-Vercel serverless funksiyalari lokal fayl bazasini doimiy saqlay olmaydi. Shu sababli buyurtmalar **PostgreSQL** da saqlanadi. Neon, Supabase yoki Vercel Marketplace’dagi PostgreSQL xizmatidan foydalanish mumkin.
+## Imkoniyatlar
 
-### Vercel + PostgreSQL sozlash
+- O‘zbek/rus/ingliz interfeysi, o‘zbek tili asosiy; qorong‘i/yorug‘ rejim.
+- 13 metall + 9 qurilish kategoriyasi, yangi kategoriyalar qo‘shish.
+- Ko‘p rasmlar, kod, ishlab chiqaruvchi, narx/chegirma, qoldiq, minimal buyurtma, qadam, og‘irlik, uzunlik, kenglik, qalinlik, diametr, material, texnik xususiyatlar va o‘xshash mahsulotlar.
+- Har bir mahsulot uchun `kg`, `ton`, `m`, `m²`, `dona`, `qop` birligi.
+- Qidiruv, filtr, saralash, katak/ro‘yxat, sahifalash, galereya, savat, kuponlar.
+- Sevimlilar, 4 tagacha taqqoslash, yaqinda ko‘rilganlar, qurilmada buyurtma kvitansiyalari.
+- Mehmon buyurtmasi, serverda narx hisoblash, qoldiq band qilish, takroriy so‘rovdan himoya.
+- O‘zbek tilidagi Telegram xabarlari, persistent outbox, bekor qilish va holat xabarlari.
+- Administrator: statistika, mahsulot/kategoriya/kupon/rasm/sozlama/buyurtma/yordam/xabar/zaxira boshqaruvi.
+- Capacitor Android, statik Vite WebView, GitHub Actions orqali APK.
+- Docker/Caddy bilan doimiy diskli deploy, JSON jurnali, atomik yozuv, zaxira va tiklash.
 
-1. PostgreSQL database yarating: masalan [Neon](https://neon.tech/), [Supabase](https://supabase.com/) yoki Vercel Marketplace PostgreSQL integratsiyasi.
-2. Vercel loyihasi **Settings → Environment Variables** ga qo‘shing:
+## Muhim: qayerda ishlaydi?
 
-```env
-DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=require
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=your-strong-password-at-least-12-characters
-TELEGRAM_BOT_TOKEN=your-bot-token
-TELEGRAM_CHAT_ID=@Navroz0909
-```
+**Vercel, Netlify Functions va AWS Lambda uchun emas.** Ularning serverless fayl tizimi doimiy emas. Yangi instance, qayta deploy yoki sovuq start JSON buyurtmalarni yo‘qotishi mumkin. Shuning uchun backend bu muhitlarda `PERSISTENT_DISK_REQUIRED` bilan ataylab ishlashni rad etadi. Vercel’ga faqat statik reklama sahifasini joylash mumkin; buyurtma backend’i emas.
 
-Agar integratsiya `POSTGRES_URL` bersa, uni ham ishlatish mumkin. `DATABASE_URL` birinchi o‘rinda tekshiriladi.
+Docker volume yoki VPS diskida ishlatish uchun mo‘ljallangan. Hosting provayderi diskning doimiyligini kafolatlashi shart. `DATA_DIR` oddiy konteyner ichida emas, mounted volume ichida bo‘lsin. Bir vaqtda **bitta backend instance** ishlating. JSON ombori kichik/o‘rta do‘kon uchun; yuq yuk yoki ko‘p serverli arxitektura uchun mos emas.
 
-3. Vercel’da **Redeploy** qiling.
-4. Tekshirish uchun `https://your-site.vercel.app/api/health` oching. `ok: true` va `storage: "postgresql"` bo‘lishi kerak.
-
-Jadvallar birinchi ulanishda avtomatik yaratiladi. Alohida migration bosqichi talab qilinmaydi.
+Batafsil: [Deployment](docs/DEPLOYMENT.md) · [Android](docs/ANDROID.md) · [API](docs/API.md) · [Xavfsizlik va tiklash](docs/OPERATIONS.md) · [Tekshiruv](docs/TESTING.md).
 
 ## Lokal ishga tushirish
 
-Node.js **20.9 yoki yangi kerak** (22 LTS tavsiya etiladi). Lokal ishlab chiqish uchun ham PostgreSQL kerak.
-
-Docker orqali tez baza:
-
-```bash
-docker run --name ischi-postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=ischi \
-  -p 5432:5432 -d postgres:16
-```
-
-So‘ng:
+Node.js **22.12+** kerak.
 
 ```bash
 npm ci
 cp .env.example .env.local
-```
-
-`.env.local` ichida:
-
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ischi
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=kamida-12-belgili-kuchli-parol
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_CHAT_ID=@Navroz0909
-```
-
-Ishga tushirish:
-
-```bash
+# .env.local ichida ADMIN_PASSWORD ga kuchli noyob parol kiriting.
 npm run dev
 ```
 
 - Do‘kon: `http://localhost:3000`
 - Administrator: `http://localhost:3000/admin`
-- Health: `http://localhost:3000/api/health`
+- Birinchi startda `seeds/` fayllari `DATA_DIR` ga ko‘chiriladi. Keyingi startlarda mavjud fayllar qayta yozilmaydi.
+- `data/` Git’ga kiritilmaydi. Unda mijoz ma’lumotlari va maxfiy kvitansiya kaliti bor.
+- `.env.local` ni hech qachon commit qilmang.
 
-Agar PostgreSQL sozlanmagan bo‘lsa, checkout umumiy “texnik xatolik” o‘rniga aniq sozlash xabarini qaytaradi.
-
-## Server sozlamalari
-
-| O‘zgaruvchi          | Vazifasi                                                         |
-| -------------------- | ---------------------------------------------------------------- |
-| `DATABASE_URL`       | PostgreSQL ulanish manzili; Vercel va lokal ishlab chiqish uchun |
-| `POSTGRES_URL`       | Muqobil PostgreSQL ulanish manzili; `DATABASE_URL` bo‘lmasa      |
-| `TELEGRAM_BOT_TOKEN` | BotFather bergan maxfiy bot tokeni                               |
-| `TELEGRAM_CHAT_ID`   | Administrator chat IDsi; raqamli ID yoki `@Navroz0909`           |
-| `ADMIN_USERNAME`     | Administrator logini; standart `admin`                           |
-| `ADMIN_PASSWORD`     | Kamida 12 belgili kuchli administrator paroli                    |
-
-Barcha qiymatlar **faqat serverda** ishlatiladi. `NEXT_PUBLIC_` prefiksini qo‘shmang. `.env.example` faqat bo‘sh namuna; unga haqiqiy token yoki parol yozmang.
-
-### Xavfsizlik eslatmasi
-
-Agar bot tokeni yoki administrator paroli oldin GitHub’ga commit qilingan bo‘lsa, uni **darhol almashtiring**:
-
-- BotFather orqali bot tokenini revoke/recreate qiling.
-- Administrator parolini yangilang.
-- Yangi qiymatlarni faqat Vercel Environment Variables yoki lokal `.env.local` ga joylang.
-
-Eski commit tarixida sir saqlanib qolishi mumkin; faylni keyin o‘chirish tokenni xavfsiz qilmaydi.
-
-## Telegramni ulash
-
-1. BotFather orqali bot yarating va tokenini `TELEGRAM_BOT_TOKEN` ga joylang.
-2. `TELEGRAM_CHAT_ID` ga administrator chatini kiriting.
-3. Administrator botni ochib **Start** bosishi kerak. Bot foydalanuvchiga o‘zi birinchi xabar yubora olmaydi.
-4. Sinov buyurtmasini yuboring.
-
-Telegram sozlanmagan yoki vaqtinchalik ishlamasa ham buyurtma bazaga saqlanadi. Mijozga Telegram yuborilgani haqida yolg‘on tasdiq ko‘rsatilmaydi. Administrator panelida xabar navbati va yetkazish holati ko‘rinadi.
-
-## Xarid qilish
-
-1. Mahsulotni savatga qo‘shish.
-2. **Buyurtma berish** tugmasi checkout formasini ochadi.
-3. Faqat **Ism va familiya** va **+998 XX XXX XX XX** telefon raqami kiritiladi.
-4. Server ma’lumotlarni tekshiradi, narxlarni server katalogidan oladi, buyurtma va unikal raqam yaratadi.
-5. Buyurtma va Telegram xabari bitta tranzaksiyada saqlanadi.
-6. O‘zbek tilidagi tasdiq ko‘rsatiladi. Savat bo‘shaydi; mijoz yana hisobsiz buyurtma berishi mumkin.
-
-Narx, email, parol, mijoz IDsi yoki boshqa keraksiz maydonlar qabul qilinmaydi. So‘rov hajmi 16 KB bilan cheklangan. Bir mahsulotdan 1–20 ta, bir buyurtmada ko‘pi bilan 20 xil mahsulot mumkin. Savat faqat mijoz qurilmasidagi `localStorage` da saqlanadi; bu mijoz hisobi emas.
-
-## Administrator imkoniyatlari
-
-- Barcha buyurtmalar, mijoz ismi, telefon raqami, mahsulotlar, soni va jami narx.
-- Ism, telefon yoki buyurtma raqami bo‘yicha qidiruv; holat filtri va sahifalash.
-- Holatni o‘zgartirish va ikki bosqichli bekor qilish.
-- Yangi, faol, jami buyurtmalar va yetkazilgan buyurtmalar summasi.
-- Telegram yetkazish holatlari va xavfsiz qayta urinish boshqaruvi.
-
-Holatlar: **Yangi → Tasdiqlandi → Tayyorlanmoqda → Yetkazilmoqda → Yetkazildi**, yoki **Bekor qilindi**. `Yetkazildi` va `Bekor qilindi` yakuniy holatlar. Bir xil holatni qayta saqlash yangi xabar yaratmaydi.
-
-Administrator sessiyasi 8 soat. Cookie `HttpOnly`, `SameSite=Strict`, HTTPSda `Secure`; bazaga faqat session token hashi yoziladi. Chiqish sessiyani bekor qiladi. Kirish urinishlari cheklangan, so‘rov manbasi tekshiriladi.
-
-## Takroriy xabarlardan himoya
-
-- Bitta checkout `requestId`si uchun unikal buyurtma; takroriy so‘rov avvalgi buyurtmani qaytaradi.
-- Bajarilgan holat o‘zgarishigina bitta bildirishnoma voqeasini yaratadi.
-- Tranzaksiyadagi `notification_outbox` qayta ishga tushirishdan keyin ham saqlanadi.
-- Fon ishchisi har 30 soniyada navbatni tekshiradi.
-- Yuborilgan xabar qayta yuborilmaydi. Tasdiqlangan rad etish/429 javoblari cheklangan marta qayta uriniladi.
-- Timeout, uzilish yoki 5xx javobida xabar `Tekshiruv kutilmoqda` holatida qoladi; avtomatik qayta yuborilmaydi.
-- Administrator Telegram chatini tekshirib, xabarni yuborilgan deb belgilashi yoki yetib bormaganini tekshirgach qayta yuborishi mumkin.
-
-## Namoyish katalogi
-
-`lib/catalog.ts` ichida to‘rtta **namoyish mahsuloti** va namunaviy narxlar bor. Rasmlar `/public/images` ichida AI bilan yaratilgan illustrativ tasvirlar. Ishga tushirishdan oldin katalog, narx, rasm va do‘kon matnlarini haqiqiy biznes ma’lumotlariga almashtiring.
-
-Narxlar butun UZS sonida. Yetkazib berish haqi hisobga qo‘shilmagan: sayt yetkazish shartlarini operator tasdiqlashini aytadi. Checkout buyurtmani qabul qiladi, to‘lov olmaydi.
-
-## Tekshiruvlar
+Parol hashini terminalda yaratish:
 
 ```bash
-npm run check       # TypeScript + unit/integration testlar
-npm run test:e2e    # production build + brauzer testlari
+npm run admin:hash
 ```
 
-Testlar PostgreSQL sintaksisini dev-only PGlite orqali ishga tushiradi va tashqi database talab qilmaydi. Brauzer testlari alohida vaqtinchalik bazadan foydalanadi va asosiy bazani o‘zgartirmaydi. Test serveri 3001-portda ishga tushadi va test yakunida to‘xtaydi. E2E Telegram tokeni bo‘sh: testlar haqiqiy administratorga xabar yubormaydi.
+Chiqqan `ADMIN_PASSWORD_HASH` ni server muhitiga joylang va `ADMIN_PASSWORD` ni bo‘sh qoldiring.
 
-## Production
-
-Vercel uchun yuqoridagi **Vercel + PostgreSQL** bo‘limiga amal qiling. Boshqa Node hostingda ham `DATABASE_URL` orqali PostgreSQLga ulanish mumkin:
+## Asosiy buyruqlar
 
 ```bash
-npm ci
-npm run build
-npm start
+npm run typecheck
+npm test                 # JSON, xavfsizlik, buyurtma, Telegram testlari
+npm run build            # Next.js server sayti
+npm run build:mobile     # statik Android frontend
+npm run test:e2e         # production server + Chromium E2E
+npm run check            # typecheck, unit, website va mobile build
+npm audit
 ```
 
-PostgreSQL bazasini muntazam zaxiralang. Serverless muhitda ulanishlar sonini nazorat qilish uchun pooling/rejimdan foydalaning; kerak bo‘lsa `DATABASE_POOL_MAX` bilan maksimum ulanishlar sonini kamaytirish mumkin.
+## Production Docker deploy
 
-## Tuzilma
+1. DNS A/AAAA yozuvini haqiqiy VPS IP manziliga qarating.
+2. `.env.example` dan `.env` yarating; kuchli admin paroli, Telegram tokeni va haqiqiy domenni kiriting.
+3. `.env` faylida `DOMAIN=shop.your-company.example` ni o‘z domeningizga almashtiring.
+4. Quyidagilarni bajaring:
 
-- `app/` — Next.js App Router sahifalari va APIlar.
-- `components/storefront.tsx` — katalog, savat, ikki maydonli checkout va tasdiq.
-- `components/admin-*.tsx`, `components/notifications-panel.tsx` — administrator interfeysi.
-- `lib/server/db.ts` — PostgreSQL pool, sxema va tranzaksiyalar.
-- `lib/server/orders.ts` — buyurtma yaratish, qidiruv va holatlar.
-- `lib/server/telegram.ts`, `notifications.ts` — o‘zbekcha xabarlar va doimiy navbat.
-- `lib/server/auth.ts` — faqat administrator sessiyalari.
-- `tests/`, `e2e/` — avtomatik tekshiruvlar.
+```bash
+docker compose up -d --build
+docker compose ps
+curl https://YOUR-REAL-DOMAIN/api/health
+```
 
-Texnologiyalar: Next.js 16, React 19, TypeScript, PostgreSQL, Zod, Lucide, lokal Manrope/DM Sans shriftlari.
+Caddy HTTPS sertifikatini oladi. `shop-data` volume buyurtmalar, katalog, rasmlar va zaxiralarni saqlaydi. **`docker compose down -v` buyurtmalarni o‘chiradi — ishlatmang.** Off-server zaxira hali ham zarur.
+
+## Telegram
+
+`TELEGRAM_BOT_TOKEN` va `TELEGRAM_CHAT_ID` faqat serverda. Standart qabul qiluvchi `@Navroz0909`. Shaxsiy chat uchun administrator BotFather botini ochib `/start` bosadi; ishonchli usul — `getChat` orqali olingan raqamli chat ID ni env’ga joylash. Guruh bo‘lsa, botni guruhga qo‘shing va guruh ID sidan foydalaning.
+
+Panel → Kompaniya sozlamalari → Ulanishni tekshirish → Sinov xabari. Xabar yuborilmasa buyurtma baribir JSON’ga saqlanadi. Admin Telegram navbatini ko‘radi. Tarmoq javobi noaniq bo‘lsa, takroriy xabar yubormaslik uchun administrator chatni tekshiradi. Telegram exactly-once kafolatini bermagani uchun “kafolatlangan bir marta” deb da’vo qilinmaydi.
+
+## Android APK
+
+Android Studio talab qilinmaydi. GitHub repository Settings → Secrets and variables → Actions → Variables bo‘limida `ANDROID_API_URL` ga haqiqiy `https://...` backend origin kiriting. **Android APK** workflow ni ishga tushiring. Debug APK artifact sifatida chiqadi. Signed release uchun to‘rtta signing secret kerak; kalitlar Git’ga yoki APK ichiga kiritilmaydi.
+
+Mobil frontend `mobile/` + Vite orqali statik quriladi. Next.js server sahifalari WebView ichida ishlamaydi. Ilova `/api/*` ni hosted backend’dan oladi. Backend URL ni o‘zgartirish APK ni qayta qurishni talab qiladi.
+
+## Checkout va buyurtmalar
+
+Mijozdan email, parol yoki hisob so‘ralmaydi. Telefon `+998 XX XXX XX XX`. Server mahsulot narxi, qoldiq, minimal miqdor, qadam va kuponni o‘zi tekshiradi. Mijoz yuborgan narxga ishonilmaydi. Kvitansiya maxfiy tokeni faqat shu qurilmada saqlanadi.
+
+Holatlar: **Yangi buyurtma → Tasdiqlandi → Tayyorlanmoqda → Yetkazilmoqda → Yetkazildi**. Istalgan yakunlanmagan bosqichdan **Bekor qilindi** ga o‘tish mumkin. Bekor qilish qoldiq va kupon limitini bir marta qaytaradi. Yakunlangan buyurtma holati o‘zgarmaydi.
+
+Yetkazish/to‘lov operator bilan kelishiladi. Onlayn to‘lov, SMS gateway yoki yetkazish xizmati integratsiyasi yo‘q; ular ishlayotgani haqida soxta tugmalar ko‘rsatilmaydi.
+
+## Katalog va fayllar
+
+- `seeds/`: faqat birinchi ishga tushirish uchun namunalar.
+- `DATA_DIR/*.json`: haqiqiy runtime ma’lumotlar.
+- `DATA_DIR/uploads/`: admin yuklagan WebP rasmlar.
+- `DATA_DIR/backups/`: oxirgi 40 tranzaksiya zaxirasi.
+- `DATA_DIR/.journals/`: crash recovery jurnali.
+- `public/images/`: demo/optimize qilingan statik rasmlar.
+- `assets/` va `android/`: Android ikon/splash/native loyiha.
+
+## Git va eski deploy
+
+Bu repozitoriy avval boshqa saqlash usullari bilan ishlagan. Eski deployni yangilashdan oldin zaxira oling. Ushbu versiya eski backend ma’lumotlarini avtomatik JSON’ga ko‘chirmaydi. Eski muhit o‘zgaruvchilari kerak emas. Git tarixida oldin noto‘g‘ri joylangan maxfiy qiymatlar qolgan bo‘lishi mumkin: bot tokeni va admin parolini almashtiring, tarixni tozalashni alohida rejalashtiring.
+
+## Litsenziya va maxfiylik
+
+Kod litsenziyasi repozitoriy egasiga tegishli. Demo rasmlar AI yordamida yaratilgan. Ishlab chiqarishda faqat foydalanish huquqi bo‘lgan haqiqiy mahsulot rasmlarini joylang. Mijoz ism/telefoni shaxsiy ma’lumot: kirishni cheklang, HTTPS ishlating, zaxiralarni shifrlang va kompaniyangizning rasmiy maxfiylik siyosatini kiriting.

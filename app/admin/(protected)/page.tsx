@@ -1,4 +1,4 @@
-import AdminOrders from '@/components/admin-orders';
-export default function AdminPage() {
-  return <AdminOrders />;
+import { AdminOverview } from '@/components/admin/overview';
+export default function Page() {
+  return <AdminOverview />;
 }
