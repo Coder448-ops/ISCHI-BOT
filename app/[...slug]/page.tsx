@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { StoreApp } from '@/components/store-app';
-import { loadCategories, loadProduct, trySettings } from '@/lib/server/data-source';
+import {
+  dataSourceIssue,
+  loadCategories,
+  loadProduct,
+  trySettings,
+} from '@/lib/server/data-source';
 import { SetupNotice } from '@/components/setup-notice';
 import { effectivePrice } from '@/lib/types';
 export const dynamic = 'force-dynamic';
@@ -61,7 +66,7 @@ export default async function StorePage({ params, searchParams }: Props) {
   const { slug } = await params;
   const query = await searchParams;
   const settings = await trySettings();
-  if (!settings) return <SetupNotice missing="api-origin" />;
+  if (!settings) return <SetupNotice issue={dataSourceIssue()} />;
   if (slug.length !== 1 && !(slug.length === 2 && slug[0] === 'product')) notFound();
   if (slug.length === 1 && !titles[slug[0]]) notFound();
   const product = await productFor(slug);

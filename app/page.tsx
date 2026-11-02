@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { StoreApp } from '@/components/store-app';
-import { trySettings } from '@/lib/server/data-source';
+import { dataSourceIssue, trySettings } from '@/lib/server/data-source';
 import { SetupNotice } from '@/components/setup-notice';
 export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,6 +28,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 export default async function HomePage() {
-  if (!(await trySettings())) return <SetupNotice missing="api-origin" />;
+  if (!(await trySettings())) return <SetupNotice issue={dataSourceIssue()} />;
   return <StoreApp initialPath="/" />;
 }

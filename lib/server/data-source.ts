@@ -67,6 +67,15 @@ export const trySettings = cache(async (): Promise<Settings | null> => {
     return null;
   }
 });
+/** Why the shop cannot show data right now. */
+export type DataSourceIssue = 'api-origin' | 'upstream' | 'storage';
+export function dataSourceIssue(): DataSourceIssue {
+  if (remoteMode()) return apiOrigin() ? 'upstream' : 'api-origin';
+  // A serverless host has no durable disk, so the fix is API_ORIGIN, not a local path.
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY)
+    return 'api-origin';
+  return 'storage';
+}
 export const loadSettings = cache(async (): Promise<Settings> =>
   remoteMode()
     ? (await remote<{ settings: Settings }>('/bootstrap')).settings

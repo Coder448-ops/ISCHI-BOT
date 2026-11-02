@@ -80,3 +80,11 @@ Bu mexanizm takroriylikni kamaytiradi, lekin Telegram va disk o‘rtasida distri
 3. Nusxa oling, keyin tiklang.
 4. Secret chiqqan bo‘lsa token/parolni almashtiring, sessiyalarni tozalang.
 5. Buyurtma/outbox izchilligini tekshiring, mijozlarga zarur bo‘lsa qo‘lda xabar bering.
+
+## Bir nechta jarayon va yangilash
+
+`npm start` har safar `.next/static`, `public` va `seeds` ni `.next/standalone` ichiga ko‘chiradi. Bu qadam `.next/stage.lock` bilan ketma-ketlashtirilgan va mavjud fayllarni o‘chirmaydi (`force: false`), shuning uchun ishlab turgan serverning chunk/rasmlari ikkinchi jarayon tomonidan o‘chirilmaydi.
+
+- Yangilash tartibi: `git pull` → `npm ci` → `npm run build` → `systemctl restart ischi` (yoki `docker compose up -d --build`).
+- Build tugagach sahifani **to‘liq yangilang**: eski build’ning hash’langan chunk’lari brauzer keshida qolishi mumkin. `app/error.tsx` shu holatda sahifani bir marta avtomatik qayta yuklaydi, takrorlansa «Server holati» havolasi orqali `/api/health` ni ko‘rsatadi.
+- `EACCES/EROFS/ENOSPC` kabi disk xatolari endi `503 STORAGE_UNAVAILABLE` bilan aniq o‘zbekcha xabar beradi; sahifa o‘rniga «Ma’lumot ombori ochilmadi» ko‘rsatmasi chiqadi.

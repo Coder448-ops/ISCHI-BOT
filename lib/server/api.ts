@@ -586,6 +586,19 @@ export async function handleApi(
       return json({ error: error.message, field: error.field }, error.status, request);
     if (error instanceof StorageError)
       return json({ error: error.message, code: error.code }, 503, request);
+    const fsCode = (error as NodeJS.ErrnoException)?.code;
+    if (fsCode && ['EACCES', 'EPERM', 'EROFS', 'ENOSPC', 'EBUSY', 'EDQUOT'].includes(fsCode)) {
+      console.error(`[ISCHI] storage io failed code=${fsCode}`);
+      return json(
+        {
+          error:
+            'Ma’lumot omboriga yozib bo‘lmadi. DATA_DIR doimiy diskda ekanini va yozish huquqi borligini tekshiring.',
+          code: 'STORAGE_UNAVAILABLE',
+        },
+        503,
+        request,
+      );
+    }
     const reference = randomUUID().slice(0, 8).toUpperCase();
     console.error(
       `[ISCHI] request failed reference=${reference} type=${error instanceof Error ? error.name : typeof error}`,
